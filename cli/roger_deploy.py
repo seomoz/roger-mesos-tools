@@ -183,12 +183,14 @@ class RogerDeploy(object):
                                  " containers(comma seperated). Example: 'all' or 'kairos' or 'app_name:container1,container2'")
         self.parser.add_argument('-b', '--branch', metavar='branch',
                                  help="branch to pull code from. Defaults to master. Example: 'production' or 'master'")
+        self.parser.add_argument('-sg', '--skip-gitpull', action="store_true",
+                                 help="skip the gitpull step. Defaults to false.")
         self.parser.add_argument('-s', '--skip-build', action="store_true",
-                                 help="whether to skip the build step. Defaults to false.'")
+                                 help="whether to skip the build step. Defaults to false.")
         self.parser.add_argument('config_file', metavar='config_file',
                                  help="configuration file to be use. Example: 'content.json' or 'kwe.json'")
         self.parser.add_argument('-M', '--incr-major', action="store_true",
-                                 help="increment major in version. Defaults to false.'")
+                                 help="increment major in version. Defaults to false.")
         self.parser.add_argument('-sp', '--skip-push', action="store_true",
                                  help="skip the push step. Defaults to false.'")
         self.parser.add_argument('-f', '--force-push', action="store_true",
@@ -299,10 +301,15 @@ class RogerDeploy(object):
         image_name = ''
         image = ''
 
+        skip_gitpull = False
+        if args.skip_gitpull is not None:
+            skip_gitpull = args.skip_gitpull
+
         # get/update target source(s)
-        args.app_name = app
-        args.directory = work_dir
-        self.rogerGitPullObject.main(settingObj, appObj, gitObj, hooksObj, args)
+        if not skip_gitpull:
+            args.app_name = app
+            args.directory = work_dir
+            self.rogerGitPullObject.main(settingObj, appObj, gitObj, hooksObj, args)
 
         skip_build = False
         if args.skip_build is not None:
@@ -366,7 +373,7 @@ class RogerDeploy(object):
         username = settingObj.getUser()
 
         deployMessage = "{0}'s deploy for {1} / {2} / {3} completed in {4} seconds.".format(
-            username.rstrip(), app, environment, branch, deployTime.total_seconds())
+            username, app, environment, branch, deployTime.total_seconds())
         slack.api_call(deployMessage)
         print(deployMessage)
 
