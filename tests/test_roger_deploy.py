@@ -481,7 +481,6 @@ class TestDeploy(unittest.TestCase):
         roger_deploy.main(settings, appConfig, frameworkUtils, gitObj, mockedHooks, args)
         verify(roger_deploy.rogerGitPullObject, times=0).main(any(), any(), any(), any(), any())
 
-
     def tearDown(self):
         pass
 
