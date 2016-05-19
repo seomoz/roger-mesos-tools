@@ -365,6 +365,7 @@ class RogerDeploy(object):
         args.image_name = image_name
         args.config_file = config_file
         args.env = environment
+        args.app_name = app
         self.rogerPushObject.main(settingObj, appObj, frameworkUtils,
                                   hooksObj, args)
 
