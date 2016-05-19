@@ -270,11 +270,11 @@ class RogerDeploy(object):
                     self.deployApp(settingObject, appObject, frameworkUtilsObject, gitObj, hooksObj,
                                    root, args, config, roger_env, work_dir, config_dir, environment, app, branch, slack, args.config_file, common_repo, temp_dir_created)
                 except (IOError, ValueError) as e:
-                    print("The folowing error occurred when deploying {}: {}.".format(
+                    print("The following error occurred when deploying {}: {}".format(
                         app, e), file=sys.stderr)
                     pass    # try deploying the next app
         except (Exception) as e:
-            print("The folowing error occurred: %s" %
+            print("The following error occurred: %s" %
                   e, file=sys.stderr)
             raise
         finally:
