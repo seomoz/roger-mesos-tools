@@ -99,8 +99,7 @@ class RogerBuild(object):
 
         if 'build_filename' in data:
             build_filename = ("{0}/{1}".format(file_path, data['build_filename']))
-            file_exists = os.path.exists(
-                "{0}/{1}".format(file_path, build_filename))
+            file_exists = os.path.exists(build_filename)
             if not file_exists:
                 raise ValueError("Specified build file: {} does not exist. Exiting build.".format(build_filename))
         else:
