@@ -3,6 +3,7 @@
 from __future__ import print_function
 import os
 import sys
+import statsd
 
 
 class Utils:
@@ -29,3 +30,6 @@ class Utils:
             if len(sha) != 0:
                 return sha[-1]
         return ''
+
+    def getStatsClient(self):
+        return statsd.StatsClient('statsd.roger.dal.moz.com', 8125)

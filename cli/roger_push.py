@@ -12,12 +12,15 @@ import traceback
 import logging
 from cli.settings import Settings
 from cli.appconfig import AppConfig
+from cli.utils import Utils
 from cli.marathon import Marathon
 from cli.hooks import Hooks
 from cli.chronos import Chronos
 from cli.frameworkUtils import FrameworkUtils
+from time import time
 
 import contextlib
+import statsd
 
 
 @contextlib.contextmanager
@@ -36,6 +39,9 @@ def describe():
 
 
 class RogerPush(object):
+
+    def __init__(self):
+        self.utils = Utils()
 
     def parse_args(self):
         self.parser = argparse.ArgumentParser(
@@ -156,186 +162,123 @@ class RogerPush(object):
                                             args.directory, repo_name, path)
 
     def main(self, settings, appConfig, frameworkObject, hooksObj, args):
-        settingObj = settings
-        appObj = appConfig
-        frameworkUtils = frameworkObject
-        config_dir = settingObj.getConfigDir()
 
-        cur_file_path = os.path.dirname(os.path.realpath(__file__))
-        config = appObj.getConfig(config_dir, args.config_file)
-        roger_env = appObj.getRogerEnv(config_dir)
+        function_execution_start_time = time()
+        execution_result = 'SUCCESS'  # Assume the execution_result to be SUCCESS unless exception occurs
+        sc = self.utils.getStatsClient()
 
-        if 'registry' not in roger_env.keys():
-            raise ValueError(
-                'Registry not found in roger-env.json file.')
+        try:
 
-        environment = roger_env.get('default', '')
-        if args.env is None:
-            if "ROGER_ENV" in os.environ:
-                env_var = os.environ.get('ROGER_ENV')
-                if env_var.strip() == '':
-                    print(
-                        "Environment variable $ROGER_ENV is not set. Using the default set from roger-env.json file")
+            settingObj = settings
+            appObj = appConfig
+            frameworkUtils = frameworkObject
+            config_dir = settingObj.getConfigDir()
+            cur_file_path = os.path.dirname(os.path.realpath(__file__))
+            config = appObj.getConfig(config_dir, args.config_file)
+            config_name = ""
+            if 'name' in config:
+                config_name = config['name']
+            roger_env = appObj.getRogerEnv(config_dir)
+
+            if 'registry' not in roger_env.keys():
+                raise ValueError(
+                    'Registry not found in roger-env.json file.')
+
+            environment = roger_env.get('default', '')
+            if args.env is None:
+                if "ROGER_ENV" in os.environ:
+                    env_var = os.environ.get('ROGER_ENV')
+                    if env_var.strip() == '':
+                        print(
+                            "Environment variable $ROGER_ENV is not set. Using the default set from roger-env.json file")
+                    else:
+                        print(
+                            "Using value {} from environment variable $ROGER_ENV".format(env_var))
+                        environment = env_var
+            else:
+                environment = args.env
+
+            if environment not in roger_env['environments']:
+                raise ValueError(
+                    'Environment not found in roger-env.json file.')
+
+            environmentObj = roger_env['environments'][environment]
+            common_repo = config.get('repo', '')
+            app_name = args.app_name
+            container_list = []
+            if ':' in app_name:
+                tokens = app_name.split(':')
+                app_name = tokens[0]
+                if ',' in tokens[1]:
+                    container_list = tokens[1].split(',')
                 else:
-                    print(
-                        "Using value {} from environment variable $ROGER_ENV".format(env_var))
-                    environment = env_var
-        else:
-            environment = args.env
+                    container_list.append(tokens[1])
 
-        if environment not in roger_env['environments']:
-            raise ValueError(
-                'Environment not found in roger-env.json file.')
+            data = appObj.getAppData(config_dir, args.config_file, app_name)
+            if not data:
+                raise ValueError('Application with name [{}] or data for it not found at {}/{}.'.format(
+                    app_name, config_dir, args.config_file))
 
-        environmentObj = roger_env['environments'][environment]
-        common_repo = config.get('repo', '')
-        app_name = args.app_name
-        container_list = []
-        if ':' in app_name:
-            tokens = app_name.split(':')
-            app_name = tokens[0]
-            if ',' in tokens[1]:
-                container_list = tokens[1].split(',')
+            configured_container_list = []
+            for task in data['containers']:
+                if type(task) == dict:
+                    configured_container_list.append(task.keys()[0])
+                else:
+                    configured_container_list.append(task)
+            if not set(container_list) <= set(configured_container_list):
+                raise ValueError('List of containers [{}] passed do not match list of acceptable containers: [{}]'.format(
+                    container_list, configured_container_list))
+
+            frameworkObj = frameworkUtils.getFramework(data)
+            framework = frameworkObj.getName()
+
+            repo = ''
+            if common_repo != '':
+                repo = data.get('repo', common_repo)
             else:
-                container_list.append(tokens[1])
+                repo = data.get('repo', app_name)
 
-        data = appObj.getAppData(config_dir, args.config_file, app_name)
-        if not data:
-            raise ValueError('Application with name [{}] or data for it not found at {}/{}.'.format(
-                app_name, config_dir, args.config_file))
+            comp_dir = settingObj.getComponentsDir()
+            templ_dir = settingObj.getTemplatesDir()
+            secrets_dir = settingObj.getSecretsDir()
 
-        configured_container_list = []
-        for task in data['containers']:
-            if type(task) == dict:
-                configured_container_list.append(task.keys()[0])
+            # template marathon files
+            if not container_list:
+                data_containers = data['containers']
             else:
-                configured_container_list.append(task)
-        if not set(container_list) <= set(configured_container_list):
-            raise ValueError('List of containers [{}] passed do not match list of acceptable containers: [{}]'.format(
-                container_list, configured_container_list))
+                data_containers = container_list
 
-        frameworkObj = frameworkUtils.getFramework(data)
-        framework = frameworkObj.getName()
+            failed_container_dict = {}
 
-        repo = ''
-        if common_repo != '':
-            repo = data.get('repo', common_repo)
-        else:
-            repo = data.get('repo', app_name)
-
-        comp_dir = settingObj.getComponentsDir()
-        templ_dir = settingObj.getTemplatesDir()
-        secrets_dir = settingObj.getSecretsDir()
-
-        # template marathon files
-        if not container_list:
-            data_containers = data['containers']
-        else:
-            data_containers = container_list
-
-        failed_container_dict = {}
-
-        template = ''
-        # Required for when work_dir,component_dir,template_dir or
-        # secret_env_dir is something like '.' or './temp"
-        os.chdir(cur_file_path)
-        app_path = ''
-        if 'template_path' in data:
-            app_path = self.repo_relative_path(appObj, args, repo, data['template_path'])
-        else:
-            app_path = templ_dir
-
-        extra_vars = {}
-        if 'extra_variables_path' in data:
-            ev_path = self.repo_relative_path(appObj, args, repo, data['extra_variables_path'])
-            with open(ev_path) as f:
-                extra_vars = yaml.load(f) if ev_path.lower(
-                ).endswith('.yml') else json.load(f)
-
-        if not app_path.endswith('/'):
-            app_path = app_path + '/'
-
-        hookname = "pre_push"
-        exit_code = hooksObj.run_hook(hookname, data, app_path)
-        if exit_code != 0:
-            raise ValueError('{} hook failed.'.format(hookname))
-
-        for container in data_containers:
-            if type(container) == dict:
-                container_name = str(container.keys()[0])
-                container = container[container_name]
-                containerConfig = "{0}-{1}.json".format(
-                    config['name'], container_name)
+            template = ''
+            # Required for when work_dir,component_dir,template_dir or
+            # secret_env_dir is something like '.' or './temp"
+            os.chdir(cur_file_path)
+            app_path = ''
+            if 'template_path' in data:
+                app_path = self.repo_relative_path(appObj, args, repo, data['template_path'])
             else:
-                container_name = container
-                containerConfig = "{0}-{1}.json".format(
-                    config['name'], container)
+                app_path = templ_dir
 
-            env = Environment(loader=FileSystemLoader(
-                "{}".format(app_path)), undefined=StrictUndefined)
-            template_with_path = "[{}{}]".format(app_path, containerConfig)
-            try:
-                template = env.get_template(containerConfig)
-            except exceptions.TemplateNotFound as e:
-                raise ValueError(
-                    "The template file {} does not exist".format(template_with_path))
-            except Exception as e:
-                raise ValueError(
-                    "Error while reading template from {} - {}".format(template_with_path, e))
+            extra_vars = {}
+            if 'extra_variables_path' in data:
+                ev_path = self.repo_relative_path(appObj, args, repo, data['extra_variables_path'])
+                with open(ev_path) as f:
+                    extra_vars = yaml.load(f) if ev_path.lower(
+                    ).endswith('.yml') else json.load(f)
 
-            additional_vars = {}
-            additional_vars.update(extra_vars)
-            secret_vars = self.loadSecrets(secrets_dir, containerConfig, args, environment)
-            additional_vars.update(secret_vars)
+            if not app_path.endswith('/'):
+                app_path = app_path + '/'
 
-            image_path = "{0}/{1}".format(
-                roger_env['registry'], args.image_name)
-            print("Rendering content from template {} for environment [{}]".format(
-                template_with_path, environment))
-            try:
-                output = self.renderTemplate(template, environment, image_path, data, config, container, container_name, additional_vars)
-            except exceptions.UndefinedError as e:
-                error_str = "The following error occurred. %s.\n" % e
-                print(error_str, file=sys.stderr)
-                failed_container_dict[container_name] = error_str
-                pass
+            hookname = "pre_push"
+            exit_code = hooksObj.run_hook(hookname, data, app_path)
+            if exit_code != 0:
+                raise ValueError('{} hook failed.'.format(hookname))
 
-            # Adding check to see if all jinja variables git resolved fot the
-            # container
-            if container_name not in failed_container_dict:
-                # Adding check so that not all apps try to mergeSecrets
-                try:
-                    outputObj = json.loads(output)
-                except Exception as e:
-                    raise ValueError(
-                        "Error while loading json from {} - {}".format(template_with_path, e))
-
-                if 'SECRET' in output:
-                    output = self.mergeSecrets(output, self.loadSecrets(
-                        secrets_dir, containerConfig, args, environment))
-                if output != "StandardError":
-                    try:
-                        comp_exists = os.path.exists("{0}".format(comp_dir))
-                        if comp_exists is False:
-                            os.makedirs("{0}".format(comp_dir))
-                        comp_env_exists = os.path.exists(
-                            "{0}/{1}".format(comp_dir, environment))
-                        if comp_env_exists is False:
-                            os.makedirs(
-                                "{0}/{1}".format(comp_dir, environment))
-                    except Exception as e:
-                        logging.error(traceback.format_exc())
-                    with open("{0}/{1}/{2}".format(comp_dir, environment, containerConfig), 'wb') as fh:
-                        fh.write(output)
-
-        if args.skip_push:
-            print("Skipping push to {} framework. The rendered config file(s) are under {}/{}".format(
-                framework, comp_dir, environment))
-        else:
-            # push to roger framework
             for container in data_containers:
                 if type(container) == dict:
                     container_name = str(container.keys()[0])
+                    container = container[container_name]
                     containerConfig = "{0}-{1}.json".format(
                         config['name'], container_name)
                 else:
@@ -343,28 +286,109 @@ class RogerPush(object):
                     containerConfig = "{0}-{1}.json".format(
                         config['name'], container)
 
-                if container_name in failed_container_dict:
-                    print("Failed push to {} framework for container {} as unresolved Jinja variables present in template.".format(
-                        framework, container))
-                else:
-                    config_file_path = "{0}/{1}/{2}".format(
-                        comp_dir, environment, containerConfig)
+                env = Environment(loader=FileSystemLoader(
+                    "{}".format(app_path)), undefined=StrictUndefined)
+                template_with_path = "[{}{}]".format(app_path, containerConfig)
+                try:
+                    template = env.get_template(containerConfig)
+                except exceptions.TemplateNotFound as e:
+                    raise ValueError(
+                        "The template file {} does not exist".format(template_with_path))
+                except Exception as e:
+                    raise ValueError(
+                        "Error while reading template from {} - {}".format(template_with_path, e))
 
-                    result = frameworkObj.runDeploymentChecks(
-                        config_file_path, environment)
+                additional_vars = {}
+                additional_vars.update(extra_vars)
+                secret_vars = self.loadSecrets(secrets_dir, containerConfig, args, environment)
+                additional_vars.update(secret_vars)
 
-                    if args.force_push or result is True:
-                        frameworkObj.put(
-                            config_file_path, environmentObj, container_name, environment)
+                image_path = "{0}/{1}".format(
+                    roger_env['registry'], args.image_name)
+                print("Rendering content from template {} for environment [{}]".format(
+                    template_with_path, environment))
+                try:
+                    output = self.renderTemplate(template, environment, image_path, data, config, container, container_name, additional_vars)
+                except exceptions.UndefinedError as e:
+                    error_str = "The following error occurred. %s.\n" % e
+                    print(error_str, file=sys.stderr)
+                    failed_container_dict[container_name] = error_str
+                    pass
+
+                # Adding check to see if all jinja variables git resolved fot the
+                # container
+                if container_name not in failed_container_dict:
+                    # Adding check so that not all apps try to mergeSecrets
+                    try:
+                        outputObj = json.loads(output)
+                    except Exception as e:
+                        raise ValueError(
+                            "Error while loading json from {} - {}".format(template_with_path, e))
+
+                    if 'SECRET' in output:
+                        output = self.mergeSecrets(output, self.loadSecrets(
+                            secrets_dir, containerConfig, args, environment))
+                    if output != "StandardError":
+                        try:
+                            comp_exists = os.path.exists("{0}".format(comp_dir))
+                            if comp_exists is False:
+                                os.makedirs("{0}".format(comp_dir))
+                            comp_env_exists = os.path.exists(
+                                "{0}/{1}".format(comp_dir, environment))
+                            if comp_env_exists is False:
+                                os.makedirs(
+                                    "{0}/{1}".format(comp_dir, environment))
+                        except Exception as e:
+                            logging.error(traceback.format_exc())
+                        with open("{0}/{1}/{2}".format(comp_dir, environment, containerConfig), 'wb') as fh:
+                            fh.write(output)
+
+            if args.skip_push:
+                print("Skipping push to {} framework. The rendered config file(s) are under {}/{}".format(
+                    framework, comp_dir, environment))
+            else:
+                # push to roger framework
+                for container in data_containers:
+                    if type(container) == dict:
+                        container_name = str(container.keys()[0])
+                        containerConfig = "{0}-{1}.json".format(
+                            config['name'], container_name)
                     else:
-                        print("Skipping push to {} framework for container {} as Validation Checks failed.".format(
+                        container_name = container
+                        containerConfig = "{0}-{1}.json".format(
+                            config['name'], container)
+
+                    if container_name in failed_container_dict:
+                        print("Failed push to {} framework for container {} as unresolved Jinja variables present in template.".format(
                             framework, container))
+                    else:
+                        config_file_path = "{0}/{1}/{2}".format(
+                            comp_dir, environment, containerConfig)
 
-        hookname = "post_push"
-        exit_code = hooksObj.run_hook(hookname, data, app_path)
-        if exit_code != 0:
-            raise ValueError('{} hook failed.'.format(hookname))
+                        result = frameworkObj.runDeploymentChecks(
+                            config_file_path, environment)
 
+                        if args.force_push or result is True:
+                            frameworkObj.put(
+                                config_file_path, environmentObj, container_name, environment)
+                        else:
+                            print("Skipping push to {} framework for container {} as Validation Checks failed.".format(
+                                framework, container))
+
+            hookname = "post_push"
+            exit_code = hooksObj.run_hook(hookname, data, app_path)
+            if exit_code != 0:
+                raise ValueError('{} hook failed.'.format(hookname))
+
+        except (Exception) as e:
+            print("The following error occurred: %s" %
+                  e, file=sys.stderr)
+            execution_result = 'FAILURE'
+            raise
+        finally:
+            time_taken = time() - function_execution_start_time
+            input_metric = str(args.app_name) + ".roger_push," + "outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",environment=" + str(args.env) + ",user=" + str(settingObj.getUser()) + ",time_taken=" + str(time_taken) + " secs"
+            sc.incr(input_metric)
 
 if __name__ == "__main__":
     settingObj = Settings()
