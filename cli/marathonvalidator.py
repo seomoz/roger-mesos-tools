@@ -8,22 +8,27 @@ from cli.haproxyparser import HAProxyParser
 
 class MarathonValidator:
 
-    def validate(self, haproxy_parser_obj, environment, path_begin_value, tcp_port_list, acl_name, message_list):
+    def validate(self, haproxy_parser_obj, environment, path_begin_value, tcp_port_list, affinity, acl_name, message_list):
         haproxy_parser_obj.parseConfig(environment)
         path_begin_check = self.check_path_begin_value(
-            haproxy_parser_obj, path_begin_value, acl_name, message_list)
+            haproxy_parser_obj, path_begin_value, affinity, acl_name, message_list)
         tcp_port_check = self.check_tcp_port(
             haproxy_parser_obj, tcp_port_list, acl_name, message_list)
 
         return (path_begin_check and tcp_port_check)
 
-    def check_path_begin_value(self, haproxy_parser_obj, path_begin_value, acl_name, message_list):
+    def check_path_begin_value(self, haproxy_parser_obj, path_begin_value, affinity, acl_name, message_list):
         path_begin_values = haproxy_parser_obj.get_path_begin_values()
         if path_begin_value in path_begin_values.keys():
             if path_begin_values[path_begin_value] != acl_name:
-                message_list.append("HTTP PREFIX validation check failed. The HTTP PREFIX '{}' you are trying "
+                if affinity == False:
+                    message_list.append("HTTP PREFIX validation check failed. The HTTP PREFIX '{}' you are trying "
                                     "to use is already in use by app id: '{}'".format(path_begin_value, path_begin_values[path_begin_value]))
-                return False
+                    return False
+                else:
+                    message_list.append("WARNING: The HTTP PREFIX '{}' you are trying "
+                                    "to use is already in use by app id: '{}'".format(path_begin_value, path_begin_values[path_begin_value]))
+                    return True
             else:
                 return True
 

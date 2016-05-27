@@ -82,8 +82,8 @@ class Marathon(Framework):
                     group_id = "/" + group_id
                 for app in group['apps']:
                     http_prefix = ""
-                    tcp_port_value = ""
                     tcp_port_list = []
+                    enable_affinity = False
                     if 'id' in app.keys():
                         app_id = app['id']
                     if not app_id.startswith("/"):
@@ -96,8 +96,11 @@ class Marathon(Framework):
                         if 'TCP_PORTS' in app['env']:
                             tcp_ports_value = app['env']['TCP_PORTS']
                             tcp_port_list = json.loads(tcp_ports_value).keys()
+ 
+                        if 'ENABLE_AFFINITY' in app['env']:
+                            enable_affinity = True
 
-                    envs = (http_prefix, tcp_port_list)
+                    envs = (http_prefix, tcp_port_list, enable_affinity)
                     group_details[container_id] = envs
 
         return group_details
@@ -109,10 +112,15 @@ class Marathon(Framework):
 
         for app_id, detail in group_details.iteritems():
             http_prefix = detail[0]
+            enable_affinity = detail[2]
             if (http_prefix in http_prefixes):
-                message_list.append(
-                    "HTTP_PREFIX conflict in Marathon template file. HTTP_PREFIX '{}' is used in multiple places.".format(http_prefix))
-                result = False
+                if enable_affinity == False:
+                    message_list.append(
+                        "HTTP_PREFIX conflict in Marathon template file. HTTP_PREFIX '{}' is used in multiple places.".format(http_prefix))
+                    result = False
+                else:
+                    message_list.append(
+                        "WARNING: HTTP_PREFIX conflict in Marathon template file. HTTP_PREFIX '{}' is used in multiple places.".format(http_prefix))
             else:
                 if http_prefix != '':
                     http_prefixes[http_prefix] = app_id
@@ -146,6 +154,7 @@ class Marathon(Framework):
                 app_id = "/" + app_id
             http_prefix = ""
             tcp_port_list = []
+            enable_affinity = False
             if 'env' in marathon_data:
                 if 'HTTP_PREFIX' in marathon_data['env']:
                     http_prefix = marathon_data['env']['HTTP_PREFIX']
@@ -154,15 +163,19 @@ class Marathon(Framework):
                     tcp_ports_value = marathon_data['env']['TCP_PORTS']
                     tcp_port_list = json.loads(tcp_ports_value).keys()
 
+                if 'ENABLE_AFFINITY' in marathon_data['env']:
+                    enable_affinity = True
+
             app_ids = []
             app_ids.append(app_id)
-            group_details[app_id] = (http_prefix, tcp_port_list)
+            group_details[app_id] = (http_prefix, tcp_port_list, enable_affinity)
 
         for app_id in app_ids:
             app_http_prefix = group_details[app_id][0]
             app_tcp_port_list = group_details[app_id][1]
+            app_affinity = group_details[app_id][2]
             valid = self.marathonvalidator.validate(
-                self.haproxyparser, environment, app_http_prefix, app_tcp_port_list, app_id, message_list) and valid
+                self.haproxyparser, environment, app_http_prefix, app_tcp_port_list, app_affinity, app_id, message_list) and valid
 
         if len(message_list) != 0:
             for message in message_list:

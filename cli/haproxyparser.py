@@ -33,16 +33,16 @@ class HAProxyParser:
         backend_tcp_ports = {}
         config = self.get_haproxy_config(environment)
 
-        acl_pattern = re.compile(
-            "^( ).*acl (.*)-aclrule path_beg -i (.*)", re.MULTILINE)
-        aclrules = acl_pattern.findall(config)
+        backend_rules_pattern = re.compile(
+            "^( ).*use_backend (.*)-cluster.* if (.*)-aclrule$", re.MULTILINE)
+        backend_rules = backend_rules_pattern.findall(config)
         backend_service_pattern = re.compile(
             "^listen (.*)-cluster-tcp-(.*) :(.*)", flags=re.MULTILINE)
         backends_service_names = backend_service_pattern.findall(config)
-        for acl in aclrules:
-            acl_name = acl[1].replace("::", "/")
-            path_begin_value = acl[2]
-            path_begin_values[path_begin_value] = acl_name
+        for rule in backend_rules:
+            backend_name = rule[1].replace("::", "/")
+            path_begin_value = rule[2].replace("::", "/")
+            path_begin_values[path_begin_value] = backend_name
 
         for service in backends_service_names:
             backend_service_name = service[0].replace("::", "/")
