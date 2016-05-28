@@ -97,7 +97,7 @@ class Marathon(Framework):
                             tcp_ports_value = app['env']['TCP_PORTS']
                             tcp_port_list = json.loads(tcp_ports_value).keys()
  
-                        if 'ENABLE_AFFINITY' in app['env']:
+                        if 'ENABLE_AFFINITY' in app['env'] and app['env']['ENABLE_AFFINITY'] != "":
                             enable_affinity = True
 
                     envs = (http_prefix, tcp_port_list, enable_affinity)
@@ -163,7 +163,7 @@ class Marathon(Framework):
                     tcp_ports_value = marathon_data['env']['TCP_PORTS']
                     tcp_port_list = json.loads(tcp_ports_value).keys()
 
-                if 'ENABLE_AFFINITY' in marathon_data['env']:
+                if 'ENABLE_AFFINITY' in marathon_data['env'] and app['env']['ENABLE_AFFINITY'] != "":
                     enable_affinity = True
 
             app_ids = []
