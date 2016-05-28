@@ -31,27 +31,31 @@ class TestMarathonValidator(unittest.TestCase):
         when(haproxyparser).get_path_begin_values().thenReturn(path_beg_values)
         message_list = []
         self.assertTrue(self.marathonvalidator.check_path_begin_value(
-            haproxyparser, "/test", "/test/app", message_list))
+            haproxyparser, "/test", False, "/test/app", message_list))
         # Negative test case
         self.assertFalse(self.marathonvalidator.check_path_begin_value(
-            haproxyparser, "/test/app", "/test", message_list))
+            haproxyparser, "/test/app", False, "/test", message_list))
         self.assertTrue(self.marathonvalidator.check_path_begin_value(
-            haproxyparser, "", "/test/app", message_list))
+            haproxyparser, "/test/app", True, "/test", message_list))
         self.assertTrue(self.marathonvalidator.check_path_begin_value(
-            haproxyparser, "/test/links", "/test/links", message_list))
+            haproxyparser, "", False, "/test/app", message_list))
         self.assertTrue(self.marathonvalidator.check_path_begin_value(
-            haproxyparser, "/constance", "/test/app", message_list))
+            haproxyparser, "/test/links", False, "/test/links", message_list))
+        self.assertTrue(self.marathonvalidator.check_path_begin_value(
+            haproxyparser, "/constance", False, "/test/app", message_list))
         # Negative test case
         self.assertFalse(self.marathonvalidator.check_path_begin_value(
-            haproxyparser, "/service2", "/service2", message_list))
+            haproxyparser, "/service2", False, "/service2", message_list))
         self.assertTrue(self.marathonvalidator.check_path_begin_value(
-            haproxyparser, "/service2", "/app3/service2", message_list))
+            haproxyparser, "/service2", True, "/service2", message_list))
         self.assertTrue(self.marathonvalidator.check_path_begin_value(
-            haproxyparser, "/app/service2", "/app3/service", message_list))
+            haproxyparser, "/service2", False, "/app3/service2", message_list))
         self.assertTrue(self.marathonvalidator.check_path_begin_value(
-            haproxyparser, "/app/service2", "/test/app2/service", message_list))
+            haproxyparser, "/app/service2", False, "/app3/service", message_list))
         self.assertTrue(self.marathonvalidator.check_path_begin_value(
-            haproxyparser, "/service", "/test/app2/service", message_list))
+            haproxyparser, "/app/service2", False, "/test/app2/service", message_list))
+        self.assertTrue(self.marathonvalidator.check_path_begin_value(
+            haproxyparser, "/service", False, "/test/app2/service", message_list))
 
     def test_check_tcp_port(self):
         haproxyparser = mock(HAProxyParser)
