@@ -11,7 +11,7 @@ from cli.hooks import Hooks
 from cli.utils import Utils
 from cli.dockerutils import DockerUtils
 from cli.docker_build import Docker
-from time import time
+from datetime import datetime
 
 import contextlib
 import statsd
@@ -53,11 +53,13 @@ class RogerBuild(object):
         return self.parser
 
     def main(self, settingObj, appObj, hooksObj, dockerUtilsObj, dockerObj, args):
-
-        function_execution_start_time = time()
-        execution_result = 'SUCCESS'  # Assume the execution_result to be SUCCESS unless exception occurs
-        sc = self.utils.getStatsClient()
-
+        try:
+            function_execution_start_time = datetime.now()
+            execution_result = 'SUCCESS'  # Assume the execution_result to be SUCCESS unless exception occurs
+            sc = self.utils.getStatsClient()
+        except (Exception) as e:
+            print("The following error occurred: %s" %
+                  e, file=sys.stderr)
         try:
             config_dir = settingObj.getConfigDir()
             root = settingObj.getCliDir()
@@ -166,9 +168,15 @@ class RogerBuild(object):
                   e, file=sys.stderr)
             raise
         finally:
-            time_taken = time() - function_execution_start_time
-            input_metric = str(args.app_name) + ".roger_build," + "outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",environment=" + str(args.env) + ",user=" + str(settingObj.getUser()) + ",time_taken=" + str(time_taken) + " secs"
-            sc.incr(input_metric)
+            try:
+                time_take_milliseonds = (( datetime.now() - function_execution_start_time ).total_seconds() * 1000 )
+                input_metric = str(args.app_name) + ".roger_build_time," + "outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",environment=" + str(args.env) + ",user=" + str(settingObj.getUser())
+                sc.timing(input_metric, time_take_milliseonds)
+            except (Exception) as e:
+                print("The following error occurred: %s" %
+                      e, file=sys.stderr)
+                raise
+
 
 if __name__ == "__main__":
     settingObj = Settings()

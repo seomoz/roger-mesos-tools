@@ -4,6 +4,8 @@ from __future__ import print_function
 import os
 import sys
 import statsd
+from cli.settings import Settings
+from cli.appconfig import AppConfig
 
 
 class Utils:
@@ -32,4 +34,14 @@ class Utils:
         return ''
 
     def getStatsClient(self):
-        return statsd.StatsClient('statsd.roger.dal.moz.com', 8125)
+        settingObj = Settings()
+        appObj = AppConfig()
+        config_dir = settingObj.getConfigDir()
+        roger_env = appObj.getRogerEnv(config_dir)
+        statsd_url = ""
+        statsd_port = ""
+        if 'statsd_client_endpoint' in roger_env.keys():
+            statsd_url = roger_env['statsd_client_endpoint']
+        if 'statsd_client_port' in roger_env.keys():
+            statsd_port = int(roger_env['statsd_client_port'])
+        return statsd.StatsClient(statsd_url, statsd_port)

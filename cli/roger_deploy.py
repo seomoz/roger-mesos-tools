@@ -26,7 +26,6 @@ from cli.frameworkUtils import FrameworkUtils
 from cli.gitutils import GitUtils
 from cli.dockerutils import DockerUtils
 from cli.docker_build import Docker
-from time import time
 
 import contextlib
 import statsd
@@ -208,11 +207,13 @@ class RogerDeploy(object):
         return self.parser
 
     def main(self, settingObject, appObject, frameworkUtilsObject, gitObj, hooksObj, args):
-
-        function_execution_start_time = time()
-        execution_result = 'SUCCESS'  # Assume the execution_result to be SUCCESS unless exception occurs
-        sc = self.utils.getStatsClient()
-
+        try:
+            function_execution_start_time = datetime.now()
+            execution_result = 'SUCCESS'  # Assume the execution_result to be SUCCESS unless exception occurs
+            sc = self.utils.getStatsClient()
+        except (Exception) as e:
+            print("The following error occurred: %s" %
+                  e, file=sys.stderr)
         try:
             settingObj = settingObject
             appObj = appObject
@@ -296,10 +297,15 @@ class RogerDeploy(object):
                   e, file=sys.stderr)
             raise
         finally:
-            time_taken = time() - function_execution_start_time
-            input_metric = str(args.application) + ".roger_deploy," + "outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",environment=" + str(args.environment) + ",user=" + str(settingObj.getUser()) + ",time_taken=" + str(time_taken) + " secs"
-            sc.incr(input_metric)
-            self.removeDirTree(work_dir, args, temp_dir_created)
+            try:
+                time_take_milliseonds = (( datetime.now() - function_execution_start_time ).total_seconds() * 1000 )
+                input_metric = str(args.application) + ".roger_deploy_time," + "outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",environment=" + str(args.environment) + ",user=" + str(settingObj.getUser())
+                sc.timing(input_metric, time_take_milliseonds)
+                self.removeDirTree(work_dir, args, temp_dir_created)
+            except (Exception) as e:
+                print("The following error occurred: %s" %
+                      e, file=sys.stderr)
+                raise
 
     def deployApp(self, settingObject, appObject, frameworkUtilsObject, gitObj, hooksObj, root, args, config,
                   roger_env, work_dir, config_dir, environment, app, branch, slack, config_file, common_repo, temp_dir_created):
