@@ -299,7 +299,7 @@ class RogerDeploy(object):
         finally:
             try:
                 time_take_milliseonds = (( datetime.now() - function_execution_start_time ).total_seconds() * 1000 )
-                input_metric = "roger-tools.roger_deploy_time," + "app_name=" + str(args.application) + ",outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",environment=" + str(args.environment) + ",user=" + str(settingObj.getUser())
+                input_metric = "roger-tools.roger_deploy_time," + "app_name=" + str(args.application) + ",outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",env=" + str(args.environment) + ",user=" + str(settingObj.getUser())
                 sc.timing(input_metric, time_take_milliseonds)
                 self.removeDirTree(work_dir, args, temp_dir_created)
             except (Exception) as e:
