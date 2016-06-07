@@ -265,7 +265,7 @@ class RogerPush(object):
                 app_path = app_path + '/'
 
             if not hasattr(self, "identifier"):
-                self.identifier = self.utils.get_identifier(config_name, settingObj.getUser())
+                self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.app_name)
 
             hookname = "pre_push"
             hook_input_metric = "roger-tools." + hookname + "_time," + "app_name=" + str(args.app_name)  + ",identifier=" + str(self.identifier) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())

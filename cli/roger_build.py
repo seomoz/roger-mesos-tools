@@ -108,7 +108,7 @@ class RogerBuild(object):
                                                      args.directory, repo_name)
 
             if not hasattr(self, "identifier"):
-                self.identifier = self.utils.get_identifier(config_name, settingObj.getUser())
+                self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.app_name)
 
             hookname = "pre_build"
             hookname_input_metric = "roger-tools." + hookname + "_time," + "app_name=" + str(args.app_name) + ",identifier=" + str(self.identifier) + ",config_name=" + str(config_name) + ",env=" + str(args.env) + ",user=" + str(settingObj.getUser())
@@ -176,7 +176,7 @@ class RogerBuild(object):
             try:
                 # If the build fails before going through any steps
                 if not hasattr(self, "identifier"):
-                    self.identifier = self.utils.get_identifier(config_name, settingObj.getUser())
+                    self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.app_name)
                 time_take_milliseonds = (( datetime.now() - function_execution_start_time ).total_seconds() * 1000 )
                 input_metric = "roger-tools.roger_build_time," + "app_name=" + str(args.app_name) + ",identifier=" + str(self.identifier) + ",outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",env=" + str(args.env) + ",user=" + str(settingObj.getUser())
                 sc.timing(input_metric, time_take_milliseonds)

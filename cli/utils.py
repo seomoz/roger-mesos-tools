@@ -47,6 +47,6 @@ class Utils:
             statsd_port = int(roger_env['statsd_client_port'])
         return statsd.StatsClient(statsd_url, statsd_port)
 
-    def get_identifier(self, config_name, user_name):
-        hash_value =  str(int(time.time())) + "-" + str(hashlib.sha224(config_name+"-"+user_name).hexdigest())[:8]
+    def get_identifier(self, config_name, user_name, app_name):
+        hash_value =  str(int(time.time())) + "-" + str(hashlib.sha224(config_name+"-"+user_name+"-"+app_name).hexdigest())[:8]
         return hash_value

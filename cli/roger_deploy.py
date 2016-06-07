@@ -237,7 +237,7 @@ class RogerDeploy(object):
             slack = Slack(config['notifications'],
                           '/home/vagrant/.roger_cli.conf.d/slack_token')
 
-            self.identifier = self.utils.get_identifier(config_name, settingObj.getUser())
+            self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.application)
 
             apps = []
             if args.application == 'all':
@@ -302,7 +302,7 @@ class RogerDeploy(object):
             try:
                 # If the deploy fails before going through any steps
                 if not hasattr(self, "identifier"):
-                    self.identifier = self.utils.get_identifier(config_name, settingObj.getUser())
+                    self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.application)
                 time_take_milliseonds = (( datetime.now() - function_execution_start_time ).total_seconds() * 1000 )
                 input_metric = "roger-tools.roger_deploy_time," + "app_name=" + str(args.application) + ",outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser()) + ",identifier=" + str(self.identifier)
                 sc.timing(input_metric, time_take_milliseonds)
