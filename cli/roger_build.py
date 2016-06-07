@@ -107,8 +107,12 @@ class RogerBuild(object):
                     file_path = "{0}/{1}/{2}".format(cur_dir,
                                                      args.directory, repo_name)
 
+            if not hasattr(self, "identifier"):
+                self.identifier = self.utils.get_identifier(config_name, settingObj.getUser())
+
             hookname = "pre_build"
-            exit_code = hooksObj.run_hook(hookname, data, file_path)
+            hookname_input_metric = "roger-tools." + hookname + "_time," + "app_name=" + str(args.app_name) + ",identifier=" + str(self.identifier) + ",config_name=" + str(config_name) + ",env=" + str(args.env) + ",user=" + str(settingObj.getUser())
+            exit_code = hooksObj.run_hook(hookname, data, file_path, hookname_input_metric)
             if exit_code != 0:
                 raise ValueError('{} hook failed.'.format(hookname))
 
@@ -159,7 +163,8 @@ class RogerBuild(object):
                 print("Dockerfile does not exist in dir: {}".format(file_path))
 
             hookname = "post_build"
-            exit_code = hooksObj.run_hook(hookname, data, file_path)
+            hookname_input_metric = "roger-tools." + hookname + "_time," + "app_name=" + str(args.app_name) + ",identifier=" + str(self.identifier) + ",config_name=" + str(config_name) + ",env=" + str(args.env) + ",user=" + str(settingObj.getUser())
+            exit_code = hooksObj.run_hook(hookname, data, file_path, hookname_input_metric)
             if exit_code != 0:
                 raise ValueError('{} hook failed.'.format(hookname))
         except (Exception) as e:
@@ -169,8 +174,11 @@ class RogerBuild(object):
             raise
         finally:
             try:
+                # If the build fails before going through any steps
+                if not hasattr(self, "identifier"):
+                    self.identifier = self.utils.get_identifier(config_name, settingObj.getUser())
                 time_take_milliseonds = (( datetime.now() - function_execution_start_time ).total_seconds() * 1000 )
-                input_metric = "roger-tools.roger_build_time," + "app_name=" + str(args.application) + ",outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",env=" + str(args.env) + ",user=" + str(settingObj.getUser())
+                input_metric = "roger-tools.roger_build_time," + "app_name=" + str(args.app_name) + ",identifier=" + str(self.identifier) + ",outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",env=" + str(args.env) + ",user=" + str(settingObj.getUser())
                 sc.timing(input_metric, time_take_milliseonds)
             except (Exception) as e:
                 print("The following error occurred: %s" %

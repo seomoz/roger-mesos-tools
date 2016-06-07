@@ -163,13 +163,6 @@ class RogerPush(object):
 
     def main(self, settings, appConfig, frameworkObject, hooksObj, args):
         try:
-            function_execution_start_time = datetime.now()
-            execution_result = 'SUCCESS'  # Assume the execution_result to be SUCCESS unless exception occurs
-            sc = self.utils.getStatsClient()
-        except (Exception) as e:
-            print("The following error occurred: %s" %
-                  e, file=sys.stderr)
-        try:
             settingObj = settings
             appObj = appConfig
             frameworkUtils = frameworkObject
@@ -271,8 +264,12 @@ class RogerPush(object):
             if not app_path.endswith('/'):
                 app_path = app_path + '/'
 
+            if not hasattr(self, "identifier"):
+                self.identifier = self.utils.get_identifier(config_name, settingObj.getUser())
+
             hookname = "pre_push"
-            exit_code = hooksObj.run_hook(hookname, data, app_path)
+            hook_input_metric = "roger-tools." + hookname + "_time," + "app_name=" + str(args.app_name)  + ",identifier=" + str(self.identifier) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
+            exit_code = hooksObj.run_hook(hookname, data, app_path, hook_input_metric)
             if exit_code != 0:
                 raise ValueError('{} hook failed.'.format(hookname))
 
@@ -349,52 +346,66 @@ class RogerPush(object):
                     framework, comp_dir, environment))
             else:
                 # push to roger framework
+
                 for container in data_containers:
-                    if type(container) == dict:
-                        container_name = str(container.keys()[0])
-                        containerConfig = "{0}-{1}.json".format(
-                            config['name'], container_name)
-                    else:
-                        container_name = container
-                        containerConfig = "{0}-{1}.json".format(
-                            config['name'], container)
-
-                    if container_name in failed_container_dict:
-                        print("Failed push to {} framework for container {} as unresolved Jinja variables present in template.".format(
-                            framework, container))
-                    else:
-                        config_file_path = "{0}/{1}/{2}".format(
-                            comp_dir, environment, containerConfig)
-
-                        result = frameworkObj.runDeploymentChecks(
-                            config_file_path, environment)
-
-                        if args.force_push or result is True:
-                            frameworkObj.put(
-                                config_file_path, environmentObj, container_name, environment)
+                    try:
+                        function_execution_start_time = datetime.now()
+                        execution_result = 'SUCCESS'  # Assume the execution_result to be SUCCESS unless exception occurs
+                        sc = self.utils.getStatsClient()
+                    except (Exception) as e:
+                        print("The following error occurred: %s" %
+                              e, file=sys.stderr)
+                    try:
+                        if type(container) == dict:
+                            container_name = str(container.keys()[0])
+                            containerConfig = "{0}-{1}.json".format(
+                                config['name'], container_name)
                         else:
-                            print("Skipping push to {} framework for container {} as Validation Checks failed.".format(
+                            container_name = container
+                            containerConfig = "{0}-{1}.json".format(
+                                config['name'], container)
+
+                        if container_name in failed_container_dict:
+                            print("Failed push to {} framework for container {} as unresolved Jinja variables present in template.".format(
                                 framework, container))
+                        else:
+                            config_file_path = "{0}/{1}/{2}".format(
+                                comp_dir, environment, containerConfig)
+
+                            result = frameworkObj.runDeploymentChecks(
+                                config_file_path, environment)
+
+                            if args.force_push or result is True:
+                                frameworkObj.put(
+                                    config_file_path, environmentObj, container_name, environment)
+                            else:
+                                print("Skipping push to {} framework for container {} as Validation Checks failed.".format(
+                                    framework, container))
+                    except (Exception) as e:
+                        print("The following error occurred: %s" %
+                              e, file=sys.stderr)
+                        execution_result = 'FAILURE'
+                        raise
+                    finally:
+                        try:
+                            time_take_milliseonds = (( datetime.now() - function_execution_start_time ).total_seconds() * 1000 )
+                            input_metric = "roger-tools.roger_push_time," + "app_name=" + str(args.app_name) + ",container_name=" + str(container_name) + ",identifier=" + str(self.identifier) + ",outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
+                            sc.timing(input_metric, time_take_milliseonds)
+                        except (Exception) as e:
+                            print("The following error occurred: %s" %
+                                  e, file=sys.stderr)
+                            raise
 
             hookname = "post_push"
-            exit_code = hooksObj.run_hook(hookname, data, app_path)
+            hook_input_metric = "roger-tools." + hookname + "_time," + "app_name=" + str(args.app_name) + ",identifier=" + str(self.identifier) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
+            exit_code = hooksObj.run_hook(hookname, data, app_path, hook_input_metric)
             if exit_code != 0:
                 raise ValueError('{} hook failed.'.format(hookname))
 
         except (Exception) as e:
             print("The following error occurred: %s" %
                   e, file=sys.stderr)
-            execution_result = 'FAILURE'
             raise
-        finally:
-            try:
-                time_take_milliseonds = (( datetime.now() - function_execution_start_time ).total_seconds() * 1000 )
-                input_metric = "roger-tools.roger_push_time," + "app_name=" + str(args.application) + ",outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",env=" + str(args.env) + ",user=" + str(settingObj.getUser())
-                sc.timing(input_metric, time_take_milliseonds)
-            except (Exception) as e:
-                print("The following error occurred: %s" %
-                      e, file=sys.stderr)
-                raise
 
 if __name__ == "__main__":
     settingObj = Settings()

@@ -237,6 +237,8 @@ class RogerDeploy(object):
             slack = Slack(config['notifications'],
                           '/home/vagrant/.roger_cli.conf.d/slack_token')
 
+            self.identifier = self.utils.get_identifier(config_name, settingObj.getUser())
+
             apps = []
             if args.application == 'all':
                 apps = config['apps'].keys()
@@ -298,8 +300,11 @@ class RogerDeploy(object):
             raise
         finally:
             try:
+                # If the deploy fails before going through any steps
+                if not hasattr(self, "identifier"):
+                    self.identifier = self.utils.get_identifier(config_name, settingObj.getUser())
                 time_take_milliseonds = (( datetime.now() - function_execution_start_time ).total_seconds() * 1000 )
-                input_metric = "roger-tools.roger_deploy_time," + "app_name=" + str(args.application) + ",outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",env=" + str(args.environment) + ",user=" + str(settingObj.getUser())
+                input_metric = "roger-tools.roger_deploy_time," + "app_name=" + str(args.application) + ",outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser()) + ",identifier=" + str(self.identifier)
                 sc.timing(input_metric, time_take_milliseonds)
                 self.removeDirTree(work_dir, args, temp_dir_created)
             except (Exception) as e:
@@ -336,6 +341,7 @@ class RogerDeploy(object):
         if not skip_gitpull:
             args.app_name = app
             args.directory = work_dir
+            self.rogerGitPullObject.identifier = self.identifier
             self.rogerGitPullObject.main(settingObj, appObj, gitObj, hooksObj, args)
 
         skip_build = False
@@ -382,6 +388,7 @@ class RogerDeploy(object):
             build_args.env = args.environment
             build_args.push = True
             try:
+                self.rogerBuildObject.identifier = self.identifier
                 self.rogerBuildObject.main(settingObj, appObject, hooksObj,
                                            self.dockerUtilsObject, self.dockerObject, build_args)
             except ValueError:
@@ -394,6 +401,7 @@ class RogerDeploy(object):
         args.config_file = config_file
         args.env = environment
         args.app_name = app
+        self.rogerPushObject.identifier = self.identifier
         self.rogerPushObject.main(settingObj, appObj, frameworkUtils,
                                   hooksObj, args)
 

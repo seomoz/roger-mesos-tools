@@ -6,7 +6,8 @@ import sys
 import statsd
 from cli.settings import Settings
 from cli.appconfig import AppConfig
-
+import hashlib
+import time
 
 class Utils:
 
@@ -45,3 +46,7 @@ class Utils:
         if 'statsd_client_port' in roger_env.keys():
             statsd_port = int(roger_env['statsd_client_port'])
         return statsd.StatsClient(statsd_url, statsd_port)
+
+    def get_identifier(self, config_name, user_name):
+        hash_value =  str(int(time.time())) + "-" + str(hashlib.sha224(config_name+"-"+user_name).hexdigest())[:8]
+        return hash_value
