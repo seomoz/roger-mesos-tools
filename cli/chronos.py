@@ -23,11 +23,14 @@ class Chronos(Framework):
 
     def put(self, file_path, environmentObj, container, environment):
         data = open(file_path).read()
+        chronos_resource = "scheduler/iso8601"
+        if 'parents' in json.loads(data):
+            chronos_resource = "scheduler/dependency"
         print("TRIGGERING CHRONOS FRAMEWORK UPDATE FOR: {}".format(container))
-        print("curl -X PUT -H 'Content-type: application/json' --data-binary @{} {}/scheduler/iso8601".format(
-            file_path, environmentObj['chronos_endpoint']))
+        print("curl -X PUT -H 'Content-type: application/json' --data-binary @{} {}/{}".format(
+            file_path, environmentObj['chronos_endpoint'], chronos_resource))
         endpoint = environmentObj['chronos_endpoint']
-        deploy_url = "{}/scheduler/iso8601".format(endpoint)
+        deploy_url = "{}/{}".format(endpoint, chronos_resource)
         resp = requests.put(deploy_url, data=data, headers={
                             'Content-type': 'application/json'})
         chronos_message = "{}".format(resp)
