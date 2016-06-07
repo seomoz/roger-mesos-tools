@@ -20,21 +20,39 @@ class TestMarathon(unittest.TestCase):
     def test_validateGroupDetails(self):
         group_details = {}
         message_list = []
-        group_details['/test/app1'] = ('/http_prefix1', ['3000', '3001'])
-        group_details['/test/app2'] = ('/http_prefix2', ['9000', '9001'])
+        group_details['/test/app1'] = ('/http_prefix1', ['3000', '3001'], False)
+        group_details['/test/app2'] = ('/http_prefix2', ['9000', '9001'], False)
         valid = self.marathon.validateGroupDetails(group_details, message_list)
         assert valid is True
         assert len(message_list) == 0
         message_list = []
-        group_details['/test/app3'] = ('/http_prefix3', ['8000', '9001'])
+        group_details['/test/app3'] = ('/http_prefix3', ['8000', '9001'], False)
         valid = self.marathon.validateGroupDetails(group_details, message_list)
         assert valid is False
         assert len(message_list) == 1
         message_list = []
-        group_details['/test/app4'] = ('/http_prefix3', ['7000', '7001'])
+        group_details = {}
+        group_details['/test/app3'] = ('/http_prefix3', ['8000', '9001'], False)
+        group_details['/test/app4'] = ('/http_prefix3', ['7000', '7001'], False)
         valid = self.marathon.validateGroupDetails(group_details, message_list)
         assert valid is False
-        assert len(message_list) == 2
+        assert len(message_list) == 1
+        message_list = []
+        group_details = {}
+        # One of the conflicting apps have affinity = False, leads to a failed 
+        # validation for HTTP_PREFIX
+        group_details['/test/app3'] = ('/http_prefix3', ['9000', '9001'], False)
+        group_details['/test/app5'] = ('/http_prefix3', ['8000', '8001'], True)
+        valid = self.marathon.validateGroupDetails(group_details, message_list)
+        assert valid is False
+        assert len(message_list) == 1
+        message_list = []
+        group_details = {}
+        group_details['/test/app3'] = ('/http_prefix3', ['9000', '9001'], True)
+        group_details['/test/app5'] = ('/http_prefix3', ['8000', '8001'], True)
+        valid = self.marathon.validateGroupDetails(group_details, message_list)
+        assert valid is True
+        assert len(message_list) == 1
         for message in message_list:
             print(message)
 
