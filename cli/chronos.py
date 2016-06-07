@@ -36,6 +36,7 @@ class Chronos(Framework):
 
     def runDeploymentChecks(self, file_path, environment):
         print("No deployment checks for Chronos")
+        return True
 
     def getCurrentImageVersion(self, roger_env, environment, application):
         data = self.get(roger_env, environment)
