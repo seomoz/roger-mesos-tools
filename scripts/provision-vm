@@ -5,7 +5,7 @@ function packages_setup {
   echo deb https://apt.dockerproject.org/repo ubuntu-trusty main > /etc/apt/sources.list.d/docker.list
   apt-get update
   apt-get install -y docker-engine=1.11.1-0~trusty nodejs npm python-pip python-dev python3-dev python-pytest python-yaml
-  pip install setuptools requests mock mockito slackclient Jinja2 tabulate
+  pip install setuptools requests mock mockito slackclient Jinja2 tabulate statsd
 }
 
 function docker_setup {

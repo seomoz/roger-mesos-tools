@@ -18,6 +18,7 @@ import shutil
 from cli.roger_push import RogerPush
 from cli.settings import Settings
 from cli.appconfig import AppConfig
+from cli.utils import Utils
 from cli.hooks import Hooks
 from cli.marathon import Marathon
 from cli.chronos import Chronos
@@ -27,6 +28,7 @@ from cli.dockerutils import DockerUtils
 from cli.docker_build import Docker
 
 import contextlib
+import statsd
 
 
 @contextlib.contextmanager
@@ -112,6 +114,7 @@ class RogerDeploy(object):
         self.rogerBuildObject = RogerBuild()
         self.dockerUtilsObject = DockerUtils()
         self.dockerObject = Docker()
+        self.utils = Utils()
 
         # To remove a temporary directory created by roger-deploy if this
         # script exits
@@ -204,81 +207,110 @@ class RogerDeploy(object):
         return self.parser
 
     def main(self, settingObject, appObject, frameworkUtilsObject, gitObj, hooksObj, args):
-        settingObj = settingObject
-        appObj = appObject
-        config_dir = settingObj.getConfigDir()
-        root = settingObj.getCliDir()
-        roger_env = appObj.getRogerEnv(config_dir)
-        config = appObj.getConfig(config_dir, args.config_file)
-        app_name = args.application
-        if ':' in app_name:
-            app_name = app_name.split(':')[0]
-        if app_name not in config['apps']:
-            raise ValueError('Application specified not found.')
-
-        if 'registry' not in roger_env:
-            raise ValueError('Registry not found in roger-env.json file.')
-
-        # Setup for Slack-Client, token, and git user
-        slack = Slack(config['notifications'],
-                      '/home/vagrant/.roger_cli.conf.d/slack_token')
-
-        apps = []
-        if args.application == 'all':
-            apps = config['apps'].keys()
-        else:
-            apps.append(app_name)
-
-        common_repo = config.get('repo', '')
-        environment = roger_env.get('default', '')
-
-        work_dir = ''
-        if args.directory:
-            work_dir = args.directory
-            temp_dir_created = False
-            print("Using {0} as the working directory".format(work_dir))
-        else:
-            work_dir = mkdtemp()
-            temp_dir_created = True
-            print("Created a temporary dir: {0}".format(work_dir))
-
-        if args.environment is None:
-            if "ROGER_ENV" in os.environ:
-                env_var = os.environ.get('ROGER_ENV')
-                if env_var.strip() == '':
-                    print(
-                        "Environment variable $ROGER_ENV is not set. Using the default set from roger-env.json file")
-                else:
-                    print(
-                        "Using value {} from environment variable $ROGER_ENV".format(env_var))
-                    environment = env_var
-        else:
-            environment = args.environment
-
-        if environment not in roger_env['environments']:
-            self.removeDirTree(work_dir, args, temp_dir_created)
-            raise ValueError('Environment not found in roger-env.json file.')
-
-        branch = "master"  # master by default
-        if args.branch is not None:
-            branch = args.branch
-
         try:
-            for app in apps:
-                try:
-                    print("Deploying {} ...".format(app))
-                    self.deployApp(settingObject, appObject, frameworkUtilsObject, gitObj, hooksObj,
-                                   root, args, config, roger_env, work_dir, config_dir, environment, app, branch, slack, args.config_file, common_repo, temp_dir_created)
-                except (IOError, ValueError) as e:
-                    print("The following error occurred when deploying {}: {}".format(
-                        app, e), file=sys.stderr)
-                    pass    # try deploying the next app
+            function_execution_start_time = datetime.now()
+            execution_result = 'SUCCESS'  # Assume the execution_result to be SUCCESS unless exception occurs
+            sc = self.utils.getStatsClient()
         except (Exception) as e:
+            print("The following error occurred: %s" %
+                  e, file=sys.stderr)
+        try:
+            settingObj = settingObject
+            appObj = appObject
+            config_dir = settingObj.getConfigDir()
+            root = settingObj.getCliDir()
+            roger_env = appObj.getRogerEnv(config_dir)
+            config = appObj.getConfig(config_dir, args.config_file)
+            config_name = ""
+            if 'name' in config:
+                config_name = config['name']
+            app_name = args.application
+            if ':' in app_name:
+                app_name = app_name.split(':')[0]
+            if app_name not in config['apps']:
+                raise ValueError('Application specified not found.')
+
+            if 'registry' not in roger_env:
+                raise ValueError('Registry not found in roger-env.json file.')
+
+            # Setup for Slack-Client, token, and git user
+            slack = Slack(config['notifications'],
+                          '/home/vagrant/.roger_cli.conf.d/slack_token')
+
+            self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.application)
+
+            apps = []
+            if args.application == 'all':
+                apps = config['apps'].keys()
+            else:
+                apps.append(app_name)
+
+            common_repo = config.get('repo', '')
+            environment = roger_env.get('default', '')
+
+            work_dir = ''
+            if args.directory:
+                work_dir = args.directory
+                temp_dir_created = False
+                print("Using {0} as the working directory".format(work_dir))
+            else:
+                work_dir = mkdtemp()
+                temp_dir_created = True
+                print("Created a temporary dir: {0}".format(work_dir))
+
+            if args.environment is None:
+                if "ROGER_ENV" in os.environ:
+                    env_var = os.environ.get('ROGER_ENV')
+                    if env_var.strip() == '':
+                        print(
+                            "Environment variable $ROGER_ENV is not set. Using the default set from roger-env.json file")
+                    else:
+                        print(
+                            "Using value {} from environment variable $ROGER_ENV".format(env_var))
+                        environment = env_var
+            else:
+                environment = args.environment
+
+            if environment not in roger_env['environments']:
+                self.removeDirTree(work_dir, args, temp_dir_created)
+                raise ValueError('Environment not found in roger-env.json file.')
+
+            branch = "master"  # master by default
+            if args.branch is not None:
+                branch = args.branch
+
+            try:
+                for app in apps:
+                    try:
+                        print("Deploying {} ...".format(app))
+                        self.deployApp(settingObject, appObject, frameworkUtilsObject, gitObj, hooksObj,
+                                       root, args, config, roger_env, work_dir, config_dir, environment, app, branch, slack, args.config_file, common_repo, temp_dir_created)
+                    except (IOError, ValueError) as e:
+                        print("The following error occurred when deploying {}: {}".format(
+                            app, e), file=sys.stderr)
+                        pass    # try deploying the next app
+            except (Exception) as e:
+                print("The following error occurred: %s" %
+                      e, file=sys.stderr)
+                raise
+        except (Exception) as e:
+            execution_result = 'FAILURE'
             print("The following error occurred: %s" %
                   e, file=sys.stderr)
             raise
         finally:
-            self.removeDirTree(work_dir, args, temp_dir_created)
+            try:
+                # If the deploy fails before going through any steps
+                if not hasattr(self, "identifier"):
+                    self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.application)
+                time_take_milliseonds = (( datetime.now() - function_execution_start_time ).total_seconds() * 1000 )
+                input_metric = "roger-tools.roger_deploy_time," + "app_name=" + str(args.application) + ",outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser()) + ",identifier=" + str(self.identifier)
+                sc.timing(input_metric, time_take_milliseonds)
+                self.removeDirTree(work_dir, args, temp_dir_created)
+            except (Exception) as e:
+                print("The following error occurred: %s" %
+                      e, file=sys.stderr)
+                raise
 
     def deployApp(self, settingObject, appObject, frameworkUtilsObject, gitObj, hooksObj, root, args, config,
                   roger_env, work_dir, config_dir, environment, app, branch, slack, config_file, common_repo, temp_dir_created):
@@ -309,6 +341,7 @@ class RogerDeploy(object):
         if not skip_gitpull:
             args.app_name = app
             args.directory = work_dir
+            self.rogerGitPullObject.identifier = self.identifier
             self.rogerGitPullObject.main(settingObj, appObj, gitObj, hooksObj, args)
 
         skip_build = False
@@ -352,8 +385,10 @@ class RogerDeploy(object):
             build_args.directory = os.path.abspath(work_dir)
             build_args.tag_name = image_name
             build_args.config_file = config_file
+            build_args.env = args.environment
             build_args.push = True
             try:
+                self.rogerBuildObject.identifier = self.identifier
                 self.rogerBuildObject.main(settingObj, appObject, hooksObj,
                                            self.dockerUtilsObject, self.dockerObject, build_args)
             except ValueError:
@@ -366,6 +401,7 @@ class RogerDeploy(object):
         args.config_file = config_file
         args.env = environment
         args.app_name = app
+        self.rogerPushObject.identifier = self.identifier
         self.rogerPushObject.main(settingObj, appObj, frameworkUtils,
                                   hooksObj, args)
 

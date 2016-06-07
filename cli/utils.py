@@ -3,7 +3,11 @@
 from __future__ import print_function
 import os
 import sys
-
+import statsd
+from cli.settings import Settings
+from cli.appconfig import AppConfig
+import hashlib
+import time
 
 class Utils:
 
@@ -29,3 +33,20 @@ class Utils:
             if len(sha) != 0:
                 return sha[-1]
         return ''
+
+    def getStatsClient(self):
+        settingObj = Settings()
+        appObj = AppConfig()
+        config_dir = settingObj.getConfigDir()
+        roger_env = appObj.getRogerEnv(config_dir)
+        statsd_url = ""
+        statsd_port = ""
+        if 'statsd_client_endpoint' in roger_env.keys():
+            statsd_url = roger_env['statsd_client_endpoint']
+        if 'statsd_client_port' in roger_env.keys():
+            statsd_port = int(roger_env['statsd_client_port'])
+        return statsd.StatsClient(statsd_url, statsd_port)
+
+    def get_identifier(self, config_name, user_name, app_name):
+        hash_value =  str(int(time.time())) + "-" + str(hashlib.sha224(config_name+"-"+user_name+"-"+app_name).hexdigest())[:8]
+        return hash_value
