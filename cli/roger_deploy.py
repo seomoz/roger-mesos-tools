@@ -183,7 +183,7 @@ class RogerDeploy(object):
         self.parser.add_argument('-e', '--environment', metavar='env',
                                  help="environment to deploy to. Example: 'dev' or 'stage'")
         self.parser.add_argument('application', metavar='application', help="application to deploy. Can also push specific"
-                                 " containers(comma seperated). Example: 'all' or 'kairos' or 'app_name:container1,container2'")
+                                 " containers(comma seperated). Example: 'all' or 'app1:app2' or 'kairos' or 'app_name[container1,container2]' or 'app1[container1,container2]:app2[container3,container4]' or 'app1:app2[container]'")
         self.parser.add_argument('-b', '--branch', metavar='branch',
                                  help="branch to pull code from. Defaults to master. Example: 'production' or 'master'")
         self.parser.add_argument('-sg', '--skip-gitpull', action="store_true",
@@ -224,12 +224,6 @@ class RogerDeploy(object):
             config_name = ""
             if 'name' in config:
                 config_name = config['name']
-            app_name = args.application
-            if ':' in app_name:
-                app_name = app_name.split(':')[0]
-            if app_name not in config['apps']:
-                raise ValueError('Application specified not found.')
-
             if 'registry' not in roger_env:
                 raise ValueError('Registry not found in roger-env.json file.')
 
@@ -240,10 +234,20 @@ class RogerDeploy(object):
             self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.application)
 
             apps = []
+            apps_container_dict = {}
             if args.application == 'all':
                 apps = config['apps'].keys()
             else:
-                apps.append(app_name)
+                if ":" not in args.application and "[" not in args.application:
+                    apps.append(args.application)
+                else:
+                    for item in args.application.split(":"):
+                        if '[' in item:
+                            matchObj = re.match(r'(.*)\[(.*)\]', item)
+                            apps.append(matchObj.group(1))
+                            apps_container_dict[matchObj.group(1)] = matchObj.group(2)
+                        else:
+                            apps.append(item)
 
             common_repo = config.get('repo', '')
             environment = roger_env.get('default', '')
@@ -281,14 +285,17 @@ class RogerDeploy(object):
 
             try:
                 for app in apps:
-                    try:
-                        print("Deploying {} ...".format(app))
-                        self.deployApp(settingObject, appObject, frameworkUtilsObject, gitObj, hooksObj,
-                                       root, args, config, roger_env, work_dir, config_dir, environment, app, branch, slack, args.config_file, common_repo, temp_dir_created)
-                    except (IOError, ValueError) as e:
-                        print("The following error occurred when deploying {}: {}".format(
-                            app, e), file=sys.stderr)
-                        pass    # try deploying the next app
+                    if app not in config['apps']:
+                        print ('Application {} specified not found.'.format(app))
+                    else:
+                        try:
+                            print("Deploying {} ...".format(app))
+                            self.deployApp(settingObject, appObject, frameworkUtilsObject, gitObj, hooksObj,
+                                           root, args, config, roger_env, work_dir, config_dir, environment, app, branch, slack, args.config_file, common_repo, temp_dir_created, apps_container_dict)
+                        except (IOError, ValueError) as e:
+                            print("The following error occurred when deploying {}: {}".format(
+                                app, e), file=sys.stderr)
+                            pass    # try deploying the next app
             except (Exception) as e:
                 print("The following error occurred: %s" %
                       e, file=sys.stderr)
@@ -313,7 +320,7 @@ class RogerDeploy(object):
                 raise
 
     def deployApp(self, settingObject, appObject, frameworkUtilsObject, gitObj, hooksObj, root, args, config,
-                  roger_env, work_dir, config_dir, environment, app, branch, slack, config_file, common_repo, temp_dir_created):
+                  roger_env, work_dir, config_dir, environment, app, branch, slack, config_file, common_repo, temp_dir_created, apps_container_dict):
 
         startTime = datetime.now()
         settingObj = settingObject
@@ -400,7 +407,10 @@ class RogerDeploy(object):
         args.image_name = image_name
         args.config_file = config_file
         args.env = environment
-        args.app_name = app
+        if app in apps_container_dict:
+            args.app_name = str(app) + ":" + apps_container_dict[app]
+        else:
+            args.app_name = app
         self.rogerPushObject.identifier = self.identifier
         self.rogerPushObject.main(settingObj, appObj, frameworkUtils,
                                   hooksObj, args)
