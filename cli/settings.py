@@ -61,8 +61,6 @@ class Settings:
             user = os.environ.get(envvar)
         else:
             user = getpass.getuser()
-        print("user: {} (to specify a different user set the environment variable {})".format(
-            user, envvar))
         return user
 
     def getPass(self, env):
