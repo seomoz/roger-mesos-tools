@@ -28,7 +28,7 @@ class Chronos(Framework):
             chronos_resource = "scheduler/dependency"
 
         if hasattr(self, "act-as-user"):
-           act_as_user = self.act_as_user
+            act_as_user = self.act_as_user
         else:
             act_as_user = str(settings.getUser())
 
