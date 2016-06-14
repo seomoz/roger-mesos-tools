@@ -26,13 +26,19 @@ class Chronos(Framework):
         chronos_resource = "scheduler/iso8601"
         if 'parents' in json.loads(data):
             chronos_resource = "scheduler/dependency"
+
+        if hasattr(self, "act-as-user"):
+            act_as_user = self.act_as_user
+        else:
+            act_as_user = str(settings.getUser())
+
         print("TRIGGERING CHRONOS FRAMEWORK UPDATE FOR: {}".format(container))
         print("curl -X PUT -H 'Content-type: application/json' --data-binary @{} {}/{}".format(
             file_path, environmentObj['chronos_endpoint'], chronos_resource))
         endpoint = environmentObj['chronos_endpoint']
         deploy_url = "{}/{}".format(endpoint, chronos_resource)
         resp = requests.put(deploy_url, data=data, headers={
-                            'Content-type': 'application/json'})
+                            'Content-type': 'application/json', 'act-as-user': act_as_user})
         chronos_message = "{}".format(resp)
         print(chronos_message)
         return resp

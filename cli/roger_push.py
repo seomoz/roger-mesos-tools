@@ -347,6 +347,9 @@ class RogerPush(object):
             else:
                 # push to roger framework
 
+                if 'owner' in config:
+                    frameworkObj.act_as_user = config['act-as-user']
+
                 for container in data_containers:
                     try:
                         function_execution_start_time = datetime.now()

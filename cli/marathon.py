@@ -46,12 +46,18 @@ class Marathon(Framework):
         data = open(file_path).read()
         appName = json.loads(data)['id']
         self.fetchUserPass(environment)
+
+        if hasattr(self, "act-as-user"):
+           act_as_user = self.act_as_user
+        else:
+            act_as_user = str(settings.getUser())
+
         print("TRIGGERING MARATHON FRAMEWORK UPDATE FOR: {}".format(container))
         resp = ""
         if 'groups' in data:
             resp = requests.put("{}/v2/groups/{}".format(environmentObj['marathon_endpoint'], appName),
                                 data=data,
-                                headers={'Content-type': 'application/json'}, auth=(self.user, self.passw))
+                                headers={'Content-type': 'application/json', 'act-as-user': act_as_user}, auth=(self.user, self.passw))
             print("curl -X PUT -H 'Content-type: application/json' --data-binary @{} {}/v2/groups/{}".format(
                 file_path, environmentObj['marathon_endpoint'], appName))
             print (
@@ -60,7 +66,7 @@ class Marathon(Framework):
             endpoint = environmentObj['marathon_endpoint']
             deploy_url = "{}/v2/apps/{}".format(endpoint, appName)
             resp = requests.put(deploy_url, data=data, headers={
-                                'Content-type': 'application/json'}, auth=(self.user, self.passw))
+                                'Content-type': 'application/json', 'act-as-user': act_as_user}, auth=(self.user, self.passw))
             print("curl -X PUT -H 'Content-type: application/json' --data-binary @{} {}/v2/apps/{}".format(
                 file_path, environmentObj['marathon_endpoint'], appName))
             print (
@@ -96,7 +102,7 @@ class Marathon(Framework):
                         if 'TCP_PORTS' in app['env']:
                             tcp_ports_value = app['env']['TCP_PORTS']
                             tcp_port_list = json.loads(tcp_ports_value).keys()
- 
+
                         if 'ENABLE_AFFINITY' in app['env'] and app['env']['ENABLE_AFFINITY'] != "":
                             enable_affinity = True
 
