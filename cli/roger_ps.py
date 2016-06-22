@@ -130,14 +130,14 @@ class RogerPS(object):
     def main(self, settings, appconfig, framework, haproxyparser, args):
         config_dir = settings.getConfigDir()
         roger_env = appconfig.getRogerEnv(config_dir)
-        environment = roger_env.get('default', '')
+        environment = roger_env.get('default_environment', '')
 
         if args.env is None:
             if "ROGER_ENV" in os.environ:
                 env_var = os.environ.get('ROGER_ENV')
                 if env_var.strip() == '':
                     print(
-                        "Environment variable $ROGER_ENV is not set.Using the default set from roger-env.json file")
+                        "Environment variable $ROGER_ENV is not set.Using the default set from roger-mesos-toolsconfig.yaml file")
                 else:
                     print(
                         "Using value {} from environment variable $ROGER_ENV".format(env_var))
@@ -146,7 +146,7 @@ class RogerPS(object):
             environment = args.env
 
         if environment not in roger_env['environments']:
-            raise ValueError('Environment not found in roger-env.json file.')
+            raise ValueError('Environment not found in roger-mesos-toolsconfig.yaml file.')
 
         app_details = self.get_app_details(
             framework, haproxyparser, environment, args, roger_env)

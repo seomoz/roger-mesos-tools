@@ -40,7 +40,7 @@ class Testcontainer(unittest.TestCase):
 
         with open(self.configs_dir + '/roger_single_container_var_tests.json') as config:
             config = json.load(config)
-        with open(self.configs_dir + '/roger-env.json') as roger:
+        with open(self.configs_dir + '/roger-mesos-toolsconfig.yaml') as roger:
             roger_env = json.load(roger)
         data = config['apps']['container-vars']
         self.config = config

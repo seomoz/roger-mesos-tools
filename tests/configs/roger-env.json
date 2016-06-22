@@ -14,5 +14,5 @@
       "chronos_endpoint": "http://prod.example.com:4400"
     }
   },
-  "default": "dev"
+  "default_environment": "dev"
 }

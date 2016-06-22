@@ -8,5 +8,5 @@
       "chronos_endpoint": "http://localmesos01:4400"
     }
   },
-  "default": "local"
+  "default_environment": "local"
 }

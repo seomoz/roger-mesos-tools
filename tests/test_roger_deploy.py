@@ -63,7 +63,7 @@ class TestDeploy(unittest.TestCase):
                                                                                                                                                                                                                                                u'global': {u'mem': u'128', u'cpus': u'0.1'}}}}]}}, u'name': u'test-app', u'vars': {u'environment': {u'prod': {u'mem': u'2048', u'cpus': u'2'}, u'dev': {u'mem': u'512', u'cpus': u'1'},
                                                                                                                                                                                                                                                                                                                                                     u'stage': {u'mem': u'1024', u'cpus': u'1'}}, u'global': {u'instances': u'1', u'network': u'BRIDGE'}}}
 
-        roger_env = {u'default': u'dev', u'registry': u'example.com:5000', u'environments': {u'prod': {u'chronos_endpoint': u'http://prod.example.com:4400',
+        roger_env = {u'default_environment': u'dev', u'registry': u'example.com:5000', u'environments': {u'prod': {u'chronos_endpoint': u'http://prod.example.com:4400',
                                                                                                        u'marathon_endpoint': u'http://prod.example.com:8080'}, u'dev': {u'chronos_endpoint': u'http://dev.example.com:4400', u'marathon_endpoint': u'http://dev.example.com:8080'},
                                                                                              u'stage': {u'chronos_endpoint': u'http://stage.example.com:4400', u'marathon_endpoint': u'http://stage.example.com:8080'}}}
 

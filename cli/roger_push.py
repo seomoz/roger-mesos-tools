@@ -79,7 +79,7 @@ class RogerPush(object):
 
         try:
             with open(path1) as f:
-                return_file = yaml.load(f) if path1.lower().endswith('.yml') else json.load(f)
+                return_file  yaml.load(f) if path1.lower().endswith('.yml') else json.load(f)
             return return_file
         except IOError:
             pass
@@ -176,15 +176,15 @@ class RogerPush(object):
 
             if 'registry' not in roger_env.keys():
                 raise ValueError(
-                    'Registry not found in roger-env.json file.')
+                    'Registry not found in roger-mesos-toolsconfig.yaml file.')
 
-            environment = roger_env.get('default', '')
+            environment = roger_env.get('default_environment', '')
             if args.env is None:
                 if "ROGER_ENV" in os.environ:
                     env_var = os.environ.get('ROGER_ENV')
                     if env_var.strip() == '':
                         print(
-                            "Environment variable $ROGER_ENV is not set. Using the default set from roger-env.json file")
+                            "Environment variable $ROGER_ENV is not set. Using the default set from roger-mesos-toolsconfig.yaml file")
                     else:
                         print(
                             "Using value {} from environment variable $ROGER_ENV".format(env_var))
@@ -194,7 +194,7 @@ class RogerPush(object):
 
             if environment not in roger_env['environments']:
                 raise ValueError(
-                    'Environment not found in roger-env.json file.')
+                    'Environment not found in roger-mesos-toolsconfig.yaml file.')
 
             environmentObj = roger_env['environments'][environment]
             common_repo = config.get('repo', '')

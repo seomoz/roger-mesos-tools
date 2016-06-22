@@ -43,14 +43,14 @@ class RogerLogs(object):
         args = self.parser.parse_args()
         config_dir = settingObj.getConfigDir()
         roger_env = appObj.getRogerEnv(config_dir)
-        environment = roger_env.get('default', '')
+        environment = roger_env.get('default_environment', '')
 
         if args.env is None:
             if "ROGER_ENV" in os.environ:
                 env_var = os.environ.get('ROGER_ENV')
                 if env_var.strip() == '':
                     print(
-                        "Environment variable $ROGER_ENV is not set.Using the default set from roger-env.json file")
+                        "Environment variable $ROGER_ENV is not set.Using the default set from roger-mesos-toolsconfig.yaml file")
                 else:
                     print(
                         "Using value {} from environment variable $ROGER_ENV".format(env_var))
@@ -59,7 +59,7 @@ class RogerLogs(object):
             environment = args.env
 
         if environment not in roger_env['environments']:
-            raise ValueError('Environment not found in roger-env.json file.')
+            raise ValueError('Environment not found in roger-mesos-toolsconfig.yaml file.')
 
         hostname = ''
         containerId = ''

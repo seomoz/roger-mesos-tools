@@ -1,0 +1,26 @@
+default_environment: dev
+default_github_repo_prefix: git@github.com:seomoz/
+environments:
+  dev:
+    chronos_endpoint: http://chronos.dev.roger.dal.moz.com
+    haproxy_config_path: :8000/config
+    host: http://dev.roger.dal.moz.com
+    marathon_endpoint: http://marathon.dev.roger.dal.moz.com
+  local:
+    chronos_endpoint: http://localmesos01:4400
+    haproxy_config_path: :8000/config
+    host: http://localmesos01
+    marathon_endpoint: http://localmesos01:8080
+  prod:
+    chronos_endpoint: http://chronos.prod.roger.dal.moz.com
+    haproxy_config_path: :8000/config
+    host: http://prod.roger.dal.moz.com
+    marathon_endpoint: http://marathon.prod.roger.dal.moz.com
+  stage:
+    chronos_endpoint: http://chronos.stage.roger.dal.moz.com
+    haproxy_config_path: :8000/config
+    host: http://stage.roger.dal.moz.com
+    marathon_endpoint: http://marathon.stage.roger.dal.moz.com
+registry: registry.roger.dal.moz.com:5000
+statsd_endpoint: statsd.roger.dal.moz.com
+statsd_port: 8125

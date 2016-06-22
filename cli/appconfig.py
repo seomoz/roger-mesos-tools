@@ -13,7 +13,7 @@ class AppConfig:
 
     def getRogerEnv(self, config_dir):
         roger_env = None
-        env_file = '{0}/roger-env.json'
+        env_file = '{0}/roger-mesos-toolsconfig.yaml'
         with open(env_file.format(config_dir)) as roger_env_file_obj:
             roger_env = yaml.load(roger_env_file_obj) if env_file.lower(
             ).endswith('.yml') else json.load(roger_env_file_obj)
