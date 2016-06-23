@@ -225,7 +225,7 @@ class RogerDeploy(object):
             if 'name' in config:
                 config_name = config['name']
             if 'registry' not in roger_env:
-                raise ValueError('Registry not found in roger-mesos-toolsconfig.yaml file.')
+                raise ValueError('Registry not found in roger-mesos-toolsconfig.yml file.')
 
             # Setup for Slack-Client, token, and git user
             slack = Slack(config['notifications'],
@@ -267,7 +267,7 @@ class RogerDeploy(object):
                     env_var = os.environ.get('ROGER_ENV')
                     if env_var.strip() == '':
                         print(
-                            "Environment variable $ROGER_ENV is not set. Using the default set from roger-mesos-toolsconfig.yaml file")
+                            "Environment variable $ROGER_ENV is not set. Using the default set from roger-mesos-toolsconfig.yml file")
                     else:
                         print(
                             "Using value {} from environment variable $ROGER_ENV".format(env_var))
@@ -277,7 +277,7 @@ class RogerDeploy(object):
 
             if environment not in roger_env['environments']:
                 self.removeDirTree(work_dir, args, temp_dir_created)
-                raise ValueError('Environment not found in roger-mesos-toolsconfig.yaml file.')
+                raise ValueError('Environment not found in roger-mesos-toolsconfig.yml file.')
 
             branch = "master"  # master by default
             if args.branch is not None:
