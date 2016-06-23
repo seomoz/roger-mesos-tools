@@ -79,7 +79,7 @@ class RogerPush(object):
 
         try:
             with open(path1) as f:
-                return_file =  yaml.load(f) if path1.lower().endswith('.yml') else json.load(f)
+                return_file = yaml.load(f) if path1.lower().endswith('.yml') else json.load(f)
             return return_file
         except IOError:
             pass
