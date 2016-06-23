@@ -128,7 +128,7 @@ class RogerBuild(object):
 
             if file_exists:
                 if 'registry' not in roger_env:
-                    raise ValueError('Registry not found in roger-mesos-toolsconfig.yml file.')
+                    raise ValueError('Registry not found in roger-mesos-tools.config file.')
                 image = "{0}/{1}".format(roger_env['registry'], args.tag_name)
                 try:
                     if abs_path == args.directory:

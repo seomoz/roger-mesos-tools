@@ -50,7 +50,7 @@ class RogerLogs(object):
                 env_var = os.environ.get('ROGER_ENV')
                 if env_var.strip() == '':
                     print(
-                        "Environment variable $ROGER_ENV is not set.Using the default set from roger-mesos-toolsconfig.yml file")
+                        "Environment variable $ROGER_ENV is not set.Using the default set from roger-mesos-tools.config file")
                 else:
                     print(
                         "Using value {} from environment variable $ROGER_ENV".format(env_var))
@@ -59,7 +59,7 @@ class RogerLogs(object):
             environment = args.env
 
         if environment not in roger_env['environments']:
-            raise ValueError('Environment not found in roger-mesos-toolsconfig.yml file.')
+            raise ValueError('Environment not found in roger-mesos-tools.config file.')
 
         hostname = ''
         containerId = ''

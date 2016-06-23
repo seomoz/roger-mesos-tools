@@ -47,7 +47,7 @@ class TestPush(unittest.TestCase):
                             u'grafana_test_app': {u'imageBase': u'test_app_base', u'name': u'test_app_grafana', u'containers': [u'grafana', {u'grafana1': {u'vars': {u'environment': {u'prod': {u'mem': u'2048', u'cpus': u'2'}, u'dev': {u'mem': u'512', u'cpus': u'0.5'}, u'test': {u'env_value1': u'64', u'env_value2': u'128'}}, u'global': {u'mem': u'128', u'cpus': u'0.1', u'env_value1': u'30', u'env_value2': u'54'}}}}, {u'grafana2': {u'vars': {u'environment': {u'prod': {u'mem': u'2048', u'cpus': u'2'}, u'dev': {u'mem': u'1024', u'cpus': u'1'}}, u'global': {u'mem': u'128', u'cpus': u'0.1'}}}}]}}, u'name': u'test-app',
                   u'vars': {u'environment': {u'prod': {u'mem': u'2048', u'cpus': u'2'}, u'test': {u'env_value1': u'4', u'env_value2': u'8'}, u'dev': {u'mem': u'512', u'cpus': u'1'}, u'stage': {u'mem': u'1024', u'cpus': u'1'}}, u'global': {u'instances': u'1', u'network': u'BRIDGE', u'env_value1': u'3', u'env_value2': u'3'}}}
 
-        with open(self.configs_dir + '/roger-mesos-toolsconfig.yml') as roger:
+        with open(self.configs_dir + '/roger-mesos-tools.config') as roger:
             roger_env = json.load(roger)
         data = config['apps']['grafana_test_app']
         self.config = config
@@ -350,7 +350,7 @@ class TestPush(unittest.TestCase):
 
         with open(self.configs_dir + '/roger_push_unresolved_jinja.json') as config:
             config = json.load(config)
-        with open(self.configs_dir + '/roger-mesos-toolsconfig.yml') as roger:
+        with open(self.configs_dir + '/roger-mesos-tools.config') as roger:
             roger_env = json.load(roger)
         data = config['apps']['container-vars']
         self.config = config

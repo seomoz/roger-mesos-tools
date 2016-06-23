@@ -43,7 +43,7 @@ class TestBuild(unittest.TestCase):
         self.components_dir = self.base_dir + '/tests/components/dev'
         with open(self.configs_dir + '/app.json') as config:
             config = json.load(config)
-        with open(self.configs_dir + '/roger-mesos-toolsconfig.yml') as roger:
+        with open(self.configs_dir + '/roger-mesos-tools.config') as roger:
             roger_env = json.load(roger)
         data = config['apps']['grafana_test_app']
         self.config = config
