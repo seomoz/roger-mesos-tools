@@ -346,9 +346,8 @@ class RogerPush(object):
                     framework, comp_dir, environment))
             else:
                 # push to roger framework
-
                 if 'owner' in config:
-                    frameworkObj.act_as_user = config['act-as-user']
+                    frameworkObj.act_as_user = config['owner']
 
                 for container in data_containers:
                     try:

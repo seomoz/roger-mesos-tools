@@ -47,17 +47,18 @@ class Marathon(Framework):
         appName = json.loads(data)['id']
         self.fetchUserPass(environment)
 
-        if hasattr(self, "act-as-user"):
-           act_as_user = self.act_as_user
-        else:
-            act_as_user = str(settings.getUser())
-
         print("TRIGGERING MARATHON FRAMEWORK UPDATE FOR: {}".format(container))
         resp = ""
         if 'groups' in data:
-            resp = requests.put("{}/v2/groups/{}".format(environmentObj['marathon_endpoint'], appName),
-                                data=data,
-                                headers={'Content-type': 'application/json', 'act-as-user': act_as_user}, auth=(self.user, self.passw))
+            if hasattr(self, "act_as_user"):
+                resp = requests.put("{}/v2/groups/{}".format(environmentObj['marathon_endpoint'], appName),
+                                    data=data,
+                                    headers={'Content-type': 'application/json', 'act-as-user': self.act_as_user}, auth=(self.user, self.passw))
+            else:
+                resp = requests.put("{}/v2/groups/{}".format(environmentObj['marathon_endpoint'], appName),
+                                    data=data,
+                                    headers={'Content-type': 'application/json'}, auth=(self.user, self.passw))
+
             print("curl -X PUT -H 'Content-type: application/json' --data-binary @{} {}/v2/groups/{}".format(
                 file_path, environmentObj['marathon_endpoint'], appName))
             print (
@@ -65,8 +66,12 @@ class Marathon(Framework):
         else:
             endpoint = environmentObj['marathon_endpoint']
             deploy_url = "{}/v2/apps/{}".format(endpoint, appName)
-            resp = requests.put(deploy_url, data=data, headers={
-                                'Content-type': 'application/json', 'act-as-user': act_as_user}, auth=(self.user, self.passw))
+            if hasattr(self, "act_as_user"):
+                resp = requests.put(deploy_url, data=data, headers={
+                                    'Content-type': 'application/json', 'act-as-user': self.act_as_user}, auth=(self.user, self.passw))
+            else:
+                resp = requests.put(deploy_url, data=data, headers={
+                                    'Content-type': 'application/json'}, auth=(self.user, self.passw))
             print("curl -X PUT -H 'Content-type: application/json' --data-binary @{} {}/v2/apps/{}".format(
                 file_path, environmentObj['marathon_endpoint'], appName))
             print (
