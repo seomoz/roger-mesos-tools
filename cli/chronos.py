@@ -9,19 +9,24 @@ from cli.framework import Framework
 from cli.utils import Utils
 utils = Utils()
 
-
 class Chronos(Framework):
+
+    def __init__(self):
+        self.user = None
+        self.passw = None
 
     def getName(self):
         return "Chronos"
 
     def get(self, roger_env, environment):
+        self.fetchUserPass(environment)
         url = roger_env['environments'][environment][
             'chronos_endpoint'] + "/scheduler/jobs"
-        resp = requests.get(url)
+        resp = requests.get(url, auth=(self.user, self.passw))
         return resp.json()
 
     def put(self, file_path, environmentObj, container, environment):
+        self.fetchUserPass(environment)
         data = open(file_path).read()
         chronos_resource = "scheduler/iso8601"
         if 'parents' in json.loads(data):
@@ -35,10 +40,10 @@ class Chronos(Framework):
 
         if hasattr(self, "act_as_user"):
             resp = requests.put(deploy_url, data=data, headers={
-                                'Content-type': 'application/json', 'act-as-user': self.act_as_user})
+                                'Content-type': 'application/json', 'act-as-user': self.act_as_user}, auth=(self.user, self.passw))
         else:
             resp = requests.put(deploy_url, data=data, headers={
-                               'Content-type': 'application/json'})
+                               'Content-type': 'application/json'}, auth=(self.user, self.passw))
         chronos_message = "{}".format(resp)
         print(chronos_message)
         return resp
