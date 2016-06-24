@@ -53,7 +53,6 @@ class RogerGitPull(object):
         try:
             function_execution_start_time = datetime.now()
             execution_result = 'SUCCESS'  # Assume the execution_result to be SUCCESS unless exception occurs
-            sc = self.utils.getStatsClient()
             environment = ""
             if 'environment' in args:
                 environment = args.environment
@@ -126,6 +125,33 @@ class RogerGitPull(object):
         finally:
             try:
                 # If the gitpull fails before going through any steps
+                try:
+                    function_execution_start_time
+                except NameError:
+                    function_execution_start_time = datetime.now()
+                try:
+                    execution_result
+                except NameError:
+                    execution_result = False
+                try:
+                    config_name
+                except NameError:
+                    config_name = ""
+                try:
+                    environment
+                except NameError:
+                    environment = "dev"
+                try:
+                    args
+                except NameError:
+                    args = ""
+                    args.app_name=""
+                try:
+                    settingObj
+                except NameError:
+                    settingObj = Settings()
+
+                sc = self.utils.getStatsClient()
                 if not hasattr(self, "identifier"):
                     self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.app_name)
                 time_take_milliseonds = (( datetime.now() - function_execution_start_time ).total_seconds() * 1000 )

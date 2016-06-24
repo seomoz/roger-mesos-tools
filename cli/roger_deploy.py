@@ -115,6 +115,7 @@ class RogerDeploy(object):
         self.dockerUtilsObject = DockerUtils()
         self.dockerObject = Docker()
         self.utils = Utils()
+        self.slack = None
 
         # To remove a temporary directory created by roger-deploy if this
         # script exits
@@ -210,7 +211,6 @@ class RogerDeploy(object):
         try:
             function_execution_start_time = datetime.now()
             execution_result = 'SUCCESS'  # Assume the execution_result to be SUCCESS unless exception occurs
-            sc = self.utils.getStatsClient()
         except (Exception) as e:
             print("The following error occurred: %s" %
                   e, file=sys.stderr)
@@ -228,8 +228,9 @@ class RogerDeploy(object):
                 raise ValueError('Registry not found in roger-env.json file.')
 
             # Setup for Slack-Client, token, and git user
-            slack = Slack(config['notifications'],
-                          '/home/vagrant/.roger_cli.conf.d/slack_token')
+            if notifications in config:
+                self.slack = Slack(config['notifications'],
+                              '/home/vagrant/.roger_cli.conf.d/slack_token')
 
             self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.application)
 
@@ -291,7 +292,7 @@ class RogerDeploy(object):
                         try:
                             print("Deploying {} ...".format(app))
                             self.deployApp(settingObject, appObject, frameworkUtilsObject, gitObj, hooksObj,
-                                           root, args, config, roger_env, work_dir, config_dir, environment, app, branch, slack, args.config_file, common_repo, temp_dir_created, apps_container_dict)
+                                           root, args, config, roger_env, work_dir, config_dir, environment, app, branch, self.slack, args.config_file, common_repo, temp_dir_created, apps_container_dict)
                         except (IOError, ValueError) as e:
                             print("The following error occurred when deploying {}: {}".format(
                                 app, e), file=sys.stderr)
@@ -306,8 +307,35 @@ class RogerDeploy(object):
                   e, file=sys.stderr)
             raise
         finally:
+            # Check if the initializition of variables carried out
+            try:
+                function_execution_start_time
+            except NameError:
+                function_execution_start_time = datetime.now()
+            try:
+                execution_result
+            except NameError:
+                execution_result = False
+            try:
+                config_name
+            except NameError:
+                config_name = ""
+            try:
+                environment
+            except NameError:
+                environment = "dev"
+            try:
+                args
+            except NameError:
+                args = ""
+                args.application=""
+            try:
+                settingObj
+            except NameError:
+                settingObj = Settings()
             try:
                 # If the deploy fails before going through any steps
+                sc = self.utils.getStatsClient()
                 if not hasattr(self, "identifier"):
                     self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.application)
                 time_take_milliseonds = (( datetime.now() - function_execution_start_time ).total_seconds() * 1000 )
@@ -421,7 +449,8 @@ class RogerDeploy(object):
 
         deployMessage = "{0}'s deploy for {1} / {2} / {3} completed in {4} seconds.".format(
             username, app, environment, branch, deployTime.total_seconds())
-        slack.api_call(deployMessage)
+        if slack is not None:
+            slack.api_call(deployMessage)
         print(deployMessage)
 
 
