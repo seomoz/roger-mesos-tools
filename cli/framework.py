@@ -12,8 +12,10 @@ class Framework(object):
     __metaclass__ = ABCMeta
 
     def fetchUserPass(self, env):
-        self.user = settings.getUser()
-        self.passw = settings.getPass(env)
+        if self.user is None:
+            self.user = settings.getUser()
+        if self.passw is None:
+            self.passw = settings.getPass(env)
         print("Using u:{}, p:****".format(self.user))
 
     @abstractmethod
