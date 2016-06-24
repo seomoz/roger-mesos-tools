@@ -23,13 +23,6 @@ class Marathon(Framework):
         self.marathonvalidator = MarathonValidator()
         self.haproxyparser = HAProxyParser()
 
-    def fetchUserPass(self, env):
-        if self.user is None:
-            self.user = settings.getUser()
-        if self.passw is None:
-            self.passw = settings.getPass(env)
-        print("Using u:{}, p:****".format(self.user))
-
     def getName(self):
         return "Marathon"
 

@@ -3,11 +3,18 @@
 from __future__ import print_function
 import os
 import sys
+from cli.settings import Settings
 from abc import ABCMeta, abstractmethod
 
+settings = Settings()
 
 class Framework(object):
     __metaclass__ = ABCMeta
+
+    def fetchUserPass(self, env):
+        self.user = settings.getUser()
+        self.passw = settings.getPass(env)
+        print("Using u:{}, p:****".format(self.user))
 
     @abstractmethod
     def getName(self):
