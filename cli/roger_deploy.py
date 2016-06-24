@@ -210,11 +210,7 @@ class RogerDeploy(object):
     def main(self, settingObject, appObject, frameworkUtilsObject, gitObj, hooksObj, args):
         try:
             function_execution_start_time = datetime.now()
-            execution_result = 'SUCCESS'  # Assume the execution_result to be SUCCESS unless exception occurs
-        except (Exception) as e:
-            print("The following error occurred: %s" %
-                  e, file=sys.stderr)
-        try:
+            execution_result = 'SUCCESS'
             settingObj = settingObject
             appObj = appObject
             config_dir = settingObj.getConfigDir()
@@ -228,7 +224,7 @@ class RogerDeploy(object):
                 raise ValueError('Registry not found in roger-env.json file.')
 
             # Setup for Slack-Client, token, and git user
-            if notifications in config:
+            if 'notifications' in config:
                 self.slack = Slack(config['notifications'],
                               '/home/vagrant/.roger_cli.conf.d/slack_token')
 
@@ -308,31 +304,30 @@ class RogerDeploy(object):
             raise
         finally:
             # Check if the initializition of variables carried out
-            try:
-                function_execution_start_time
-            except NameError:
+            if 'function_execution_start_time' not in globals() or 'function_execution_start_time' not in locals():
                 function_execution_start_time = datetime.now()
-            try:
-                execution_result
-            except NameError:
-                execution_result = False
-            try:
-                config_name
-            except NameError:
+
+            if 'execution_result' not in globals() or 'execution_result' not in locals():
+                execution_result = 'FAILURE'
+
+            if 'config_name' not in globals() or 'config_name' not in locals():
                 config_name = ""
-            try:
-                environment
-            except NameError:
+
+            if 'environment' not in globals() or 'environment' not in locals():
                 environment = "dev"
-            try:
-                args
-            except NameError:
-                args = ""
+
+            if 'args' not in globals() or 'args' not in locals():
+                args = argparse.ArgumentParser(description='Exception Handling.')
+                args.add_argument('application', metavar='application', help="Exception Handling")
                 args.application=""
-            try:
-                settingObj
-            except NameError:
+
+            if 'settingObj' not in globals() or 'settingObj' not in locals():
                 settingObj = Settings()
+
+            if 'work_dir' not in globals() or 'work_dir' not in locals():
+                work_dir = ''
+                temp_dir_created = False
+
             try:
                 # If the deploy fails before going through any steps
                 sc = self.utils.getStatsClient()

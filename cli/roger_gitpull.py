@@ -56,10 +56,6 @@ class RogerGitPull(object):
             environment = ""
             if 'environment' in args:
                 environment = args.environment
-        except (Exception) as e:
-            print("The following error occurred: %s" %
-                  e, file=sys.stderr)
-        try:
             settingObj = settings
             appObj = appConfig
             gitObj = gitObject
@@ -125,30 +121,24 @@ class RogerGitPull(object):
         finally:
             try:
                 # If the gitpull fails before going through any steps
-                try:
-                    function_execution_start_time
-                except NameError:
+                if 'function_execution_start_time' not in globals() or 'function_execution_start_time' not in locals():
                     function_execution_start_time = datetime.now()
-                try:
-                    execution_result
-                except NameError:
-                    execution_result = False
-                try:
-                    config_name
-                except NameError:
+
+                if 'execution_result' not in globals() or 'execution_result' not in locals():
+                    execution_result = 'FAILURE'
+
+                if 'config_name' not in globals() or 'config_name' not in locals():
                     config_name = ""
-                try:
-                    environment
-                except NameError:
+
+                if 'environment' not in globals() or 'environment' not in locals():
                     environment = "dev"
-                try:
-                    args
-                except NameError:
-                    args = ""
+
+                if 'args' not in globals() or 'args' not in locals():
+                    args = argparse.ArgumentParser(description='Exception Handling.')
+                    args.add_argument('app_name', metavar='application', help="Exception Handling")
                     args.app_name=""
-                try:
-                    settingObj
-                except NameError:
+
+                if 'settingObj' not in globals() or 'settingObj' not in locals():
                     settingObj = Settings()
 
                 sc = self.utils.getStatsClient()

@@ -56,10 +56,6 @@ class RogerBuild(object):
         try:
             function_execution_start_time = datetime.now()
             execution_result = 'SUCCESS'  # Assume the execution_result to be SUCCESS unless exception occurs
-        except (Exception) as e:
-            print("The following error occurred: %s" %
-                  e, file=sys.stderr)
-        try:
             config_dir = settingObj.getConfigDir()
             root = settingObj.getCliDir()
             config = appObj.getConfig(config_dir, args.config_file)
@@ -174,27 +170,26 @@ class RogerBuild(object):
         finally:
             try:
                 # If the build fails before going through any steps
-                try:
-                    function_execution_start_time
-                except NameError:
+                if 'function_execution_start_time' not in globals() or 'function_execution_start_time' not in locals():
                     function_execution_start_time = datetime.now()
-                try:
-                    execution_result
-                except NameError:
-                    execution_result = False
-                try:
-                    config_name
-                except NameError:
+
+                if 'execution_result' not in globals() or 'execution_result' not in locals():
+                    execution_result = 'FAILURE'
+
+                if 'config_name' not in globals() or 'config_name' not in locals():
                     config_name = ""
-                try:
-                    args
-                except NameError:
-                    args = ""
+
+                if 'environment' not in globals() or 'environment' not in locals():
+                    environment = "dev"
+
+                if 'args' not in globals() or 'args' not in locals():
+                    args = argparse.ArgumentParser(description='Exception Handling.')
+                    args.add_argument('app_name', metavar='app_name', help="Exception Handling")
+                    args.add_argument('env', metavar='env', help="Exception Handling")
                     args.app_name=""
                     args.env = "dev"
-                try:
-                    settingObj
-                except NameError:
+
+                if 'settingObj' not in globals() or 'settingObj' not in locals():
                     settingObj = Settings()
 
                 sc = self.utils.getStatsClient()
