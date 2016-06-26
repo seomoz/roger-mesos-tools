@@ -268,7 +268,7 @@ class RogerPush(object):
                 self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.app_name)
 
             hookname = "pre_push"
-            hook_input_metric = "roger-tools." + hookname + "_time," + "app_name=" + str(args.app_name)  + ",identifier=" + str(self.identifier) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
+            hook_input_metric = "roger-tools." + hookname + "_time," + "app_name=" + str(args.app_name) + ",identifier=" + str(self.identifier) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
             exit_code = hooksObj.run_hook(hookname, data, app_path, hook_input_metric)
             if exit_code != 0:
                 raise ValueError('{} hook failed.'.format(hookname))
@@ -390,7 +390,7 @@ class RogerPush(object):
                         raise
                     finally:
                         try:
-                            time_take_milliseonds = (( datetime.now() - function_execution_start_time ).total_seconds() * 1000 )
+                            time_take_milliseonds = ((datetime.now() - function_execution_start_time).total_seconds() * 1000)
                             input_metric = "roger-tools.roger_push_time," + "app_name=" + str(args.app_name) + ",container_name=" + str(container_name) + ",identifier=" + str(self.identifier) + ",outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
                             sc.timing(input_metric, time_take_milliseonds)
                         except (Exception) as e:

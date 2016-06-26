@@ -21,13 +21,13 @@ class MarathonValidator:
         path_begin_values = haproxy_parser_obj.get_path_begin_values()
         if path_begin_value in path_begin_values.keys():
             if path_begin_values[path_begin_value] != acl_name:
-                if affinity == False:
+                if affinity is False:
                     message_list.append("HTTP PREFIX validation check failed. The HTTP PREFIX '{}' you are trying "
-                                    "to use is already in use by app id: '{}'".format(path_begin_value, path_begin_values[path_begin_value]))
+                                        "to use is already in use by app id: '{}'".format(path_begin_value, path_begin_values[path_begin_value]))
                     return False
                 else:
                     message_list.append("WARNING: The HTTP PREFIX '{}' you are trying "
-                                    "to use is already in use by app id: '{}'".format(path_begin_value, path_begin_values[path_begin_value]))
+                                        "to use is already in use by app id: '{}'".format(path_begin_value, path_begin_values[path_begin_value]))
                     return True
             else:
                 return True

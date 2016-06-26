@@ -47,7 +47,7 @@ class Hooks:
             raise
         finally:
             try:
-                time_take_milliseonds = (( datetime.now() - function_execution_start_time ).total_seconds() * 1000 )
+                time_take_milliseonds = ((datetime.now() - function_execution_start_time).total_seconds() * 1000)
                 hook_input_metric = hook_input_metric + ",outcome=" + str(execution_result)
                 sc.timing(hook_input_metric, time_take_milliseonds)
             except (Exception) as e:
