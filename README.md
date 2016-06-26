@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/seomoz/roger-mesos-tools.svg?token=6DpHsyxZF1vHyofoTmq1&branch=master)](https://travis-ci.com/seomoz/roger-mesos-tools)
+[![Build Status]](https://travis-ci.org/seomoz/roger-mesos-tools)
 
 # roger-mesos-tools
 
