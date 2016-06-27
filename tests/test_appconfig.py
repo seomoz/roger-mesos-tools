@@ -24,7 +24,7 @@ class TestAppConfig(unittest.TestCase):
     def test_getRogerEnv(self):
         roger_env = self.appObj.getRogerEnv(self.configs_dir)
         assert roger_env['registry'] == "example.com:5000"
-        assert roger_env['default'] == "dev"
+        assert roger_env['default_environment'] == "dev"
         assert roger_env['environments']['dev'][
             'marathon_endpoint'] == "http://dev.example.com:8080"
         assert roger_env['environments']['prod'][
