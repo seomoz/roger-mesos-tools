@@ -152,6 +152,7 @@ class TestPush(unittest.TestCase):
             self.base_dir + "/tests/templates")
         when(settings).getConfigDir().thenReturn(self.configs_dir)
         when(settings).getCliDir().thenReturn(self.base_dir)
+        when(settings).getUser().thenReturn(any())
         when(appConfig).getRogerEnv(any()).thenReturn(roger_env)
         when(appConfig).getConfig(any(), any()).thenReturn(config)
         when(appConfig).getAppData(any(), any(), any()).thenReturn(data)

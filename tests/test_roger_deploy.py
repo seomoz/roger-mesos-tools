@@ -26,6 +26,8 @@ from settings import Settings
 from gitutils import GitUtils
 from cli.dockerutils import DockerUtils
 from cli.docker_build import Docker
+from statsd import StatsClient
+from cli.utils import Utils
 
 # Test basic functionalities of roger-deploy script
 
@@ -124,15 +126,23 @@ class TestDeploy(unittest.TestCase):
         roger_deploy.rogerBuildObject = mock(RogerBuild)
         roger_deploy.dockerUtilsObject = mock(DockerUtils)
         roger_deploy.dockerObject = mock(Docker)
+        roger_deploy.utils = mock(Utils)
         roger_env = self.roger_env
         config = self.config
         data = self.data
+
+        sc = mock(StatsClient)
+        when(sc).timing(any(), any()).thenReturn(any())
+        when(roger_deploy.utils).getStatsClient().thenReturn(sc)
+        when(roger_deploy.utils).get_identifier(any(), any(), any()).thenReturn(any())
+
         when(marathon).getCurrentImageVersion(
             any(), any(), any()).thenReturn("testversion/v0.1.0")
         frameworkUtils = mock(FrameworkUtils)
         when(frameworkUtils).getFramework(data).thenReturn(marathon)
         when(settings).getConfigDir().thenReturn(any())
         when(settings).getCliDir().thenReturn(any())
+        when(settings).getUser().thenReturn('test_user')
         when(appConfig).getRogerEnv(any()).thenReturn(roger_env)
         when(appConfig).getConfig(any(), any()).thenReturn(config)
         when(appConfig).getAppData(any(), any(), any()).thenReturn(data)
@@ -163,16 +173,23 @@ class TestDeploy(unittest.TestCase):
         roger_deploy.rogerBuildObject = mock(RogerBuild)
         roger_deploy.dockerUtilsObject = mock(DockerUtils)
         roger_deploy.dockerObject = mock(Docker)
+        roger_deploy.utils = mock(Utils)
         mockedHooks = mock(Hooks)
         roger_env = self.roger_env
         config = self.config
         data = self.data
+        sc = mock(StatsClient)
+
+        when(sc).timing(any(), any()).thenReturn(any())
+        when(roger_deploy.utils).getStatsClient().thenReturn(sc)
+        when(roger_deploy.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(marathon).getCurrentImageVersion(
-            any(), any(), any()).thenReturn("testversion/v0.1.0")
+            any(), any(), any(), any()).thenReturn("testversion/v0.1.0")
         frameworkUtils = mock(FrameworkUtils)
         when(frameworkUtils).getFramework(data).thenReturn(marathon)
         when(settings).getConfigDir().thenReturn(any())
         when(settings).getCliDir().thenReturn(any())
+        when(settings).getUser().thenReturn(any())
         when(appConfig).getRogerEnv(any()).thenReturn(roger_env)
         when(appConfig).getConfig(any(), any()).thenReturn(config)
         when(appConfig).getAppData(any(), any(), any()).thenReturn(data)
@@ -206,15 +223,23 @@ class TestDeploy(unittest.TestCase):
         roger_deploy.rogerBuildObject = mock(RogerBuild)
         roger_deploy.dockerUtilsObject = mock(DockerUtils)
         roger_deploy.dockerObject = mock(Docker)
+        roger_deploy.utils = mock(Utils)
         roger_env = self.roger_env
         config = self.config
         data = self.data
+
+        sc = mock(StatsClient)
+        when(sc).timing(any(), any()).thenReturn(any())
+        when(roger_deploy.utils).getStatsClient().thenReturn(sc)
+        when(roger_deploy.utils).get_identifier(any(), any(), any()).thenReturn(any())
+
         when(marathon).getCurrentImageVersion(
             any(), any(), any()).thenReturn("testversion/v0.1.0")
         frameworkUtils = mock(FrameworkUtils)
         when(frameworkUtils).getFramework(data).thenReturn(marathon)
         when(settings).getConfigDir().thenReturn(any())
         when(settings).getCliDir().thenReturn(any())
+        when(settings).getUser().thenReturn('test_user')
         when(appConfig).getRogerEnv(any()).thenReturn(roger_env)
         when(appConfig).getConfig(any(), any()).thenReturn(config)
         when(appConfig).getAppData(any(), any(), any()).thenReturn(data)
@@ -245,6 +270,7 @@ class TestDeploy(unittest.TestCase):
         roger_deploy.rogerBuildObject = mock(RogerBuild)
         roger_deploy.dockerUtilsObject = mock(DockerUtils)
         roger_deploy.dockerObject = mock(Docker)
+        roger_deploy.utils = mock(Utils)
         roger_env = self.roger_env
         config = self.config
         data = self.data
@@ -268,7 +294,12 @@ class TestDeploy(unittest.TestCase):
         when(appConfig).getRepoUrl(any()).thenReturn(repo_name)
         when(appConfig).getRepoName(any()).thenReturn(repo_name)
 
-        when(mockedHooks).run_hook(any(), any(), any()).thenReturn(0)
+        sc = mock(StatsClient)
+        when(sc).timing(any(), any()).thenReturn(any())
+        when(roger_deploy.utils).getStatsClient().thenReturn(sc)
+        when(roger_deploy.utils).get_identifier(any(), any(), any()).thenReturn(any())
+
+        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
         when(gitObj).gitPull(any()).thenReturn(0)
         when(gitObj).gitShallowClone(any(), any()).thenReturn(0)
         when(gitObj).gitClone(any(), any()).thenReturn(0)
@@ -308,6 +339,7 @@ class TestDeploy(unittest.TestCase):
         roger_deploy.rogerBuildObject = mock(RogerBuild)
         roger_deploy.dockerUtilsObject = mock(DockerUtils)
         roger_deploy.dockerObject = mock(Docker)
+        roger_deploy.utils = mock(Utils)
 
         roger_env = self.roger_env
 
@@ -332,7 +364,12 @@ class TestDeploy(unittest.TestCase):
         when(appConfig).getRepoUrl(any()).thenReturn(repo_name)
         when(appConfig).getRepoName(any()).thenReturn(repo_name)
 
-        when(mockedHooks).run_hook(any(), any(), any()).thenReturn(0)
+        sc = mock(StatsClient)
+        when(sc).timing(any(), any()).thenReturn(any())
+        when(roger_deploy.utils).getStatsClient().thenReturn(sc)
+        when(roger_deploy.utils).get_identifier(any(), any(), any()).thenReturn(any())
+
+        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
 
         when(gitObj).gitPull(any()).thenReturn(0)
         when(gitObj).gitShallowClone(any(), any()).thenReturn(0)
@@ -373,6 +410,7 @@ class TestDeploy(unittest.TestCase):
         roger_deploy.rogerBuildObject = mock(RogerBuild)
         roger_deploy.dockerUtilsObject = mock(DockerUtils)
         roger_deploy.dockerObject = mock(Docker)
+        roger_deploy.utils = mock(Utils)
 
         roger_env = self.roger_env
 
@@ -382,6 +420,12 @@ class TestDeploy(unittest.TestCase):
 
         config = self.config
         data = self.data
+
+        sc = mock(StatsClient)
+        when(sc).timing(any(), any()).thenReturn(any())
+        when(roger_deploy.utils).getStatsClient().thenReturn(sc)
+        when(roger_deploy.utils).get_identifier(any(), any(), any()).thenReturn(any())
+
         when(marathon).getCurrentImageVersion(
             any(), any(), any()).thenReturn("testversion/v0.1.0")
         when(marathon).getName().thenReturn('Marathon')
@@ -397,7 +441,7 @@ class TestDeploy(unittest.TestCase):
         when(appConfig).getRepoUrl(any()).thenReturn(repo_name)
         when(appConfig).getRepoName(any()).thenReturn(repo_name)
 
-        when(mockedHooks).run_hook(any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
 
         when(gitObj).gitPull(any()).thenReturn(0)
         when(gitObj).gitShallowClone(any(), any()).thenReturn(0)
@@ -433,6 +477,7 @@ class TestDeploy(unittest.TestCase):
         roger_deploy.rogerBuildObject = mock(RogerBuild)
         roger_deploy.dockerUtilsObject = mock(DockerUtils)
         roger_deploy.dockerObject = mock(Docker)
+        roger_deploy.utils = mock(Utils)
 
         roger_env = self.roger_env
 
@@ -446,6 +491,12 @@ class TestDeploy(unittest.TestCase):
             any(), any(), any()).thenReturn("testversion/v0.1.0")
         when(marathon).getName().thenReturn('Marathon')
         frameworkUtils = mock(FrameworkUtils)
+
+        sc = mock(StatsClient)
+        when(sc).timing(any(), any()).thenReturn(any())
+        when(roger_deploy.utils).getStatsClient().thenReturn(sc)
+        when(roger_deploy.utils).get_identifier(any(), any(), any()).thenReturn(any())
+
         when(frameworkUtils).getFramework(data).thenReturn(marathon)
         when(settings).getConfigDir().thenReturn(any())
         when(settings).getCliDir().thenReturn(any())
@@ -457,7 +508,7 @@ class TestDeploy(unittest.TestCase):
         when(appConfig).getRepoUrl(any()).thenReturn(repo_name)
         when(appConfig).getRepoName(any()).thenReturn(repo_name)
 
-        when(mockedHooks).run_hook(any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
 
         when(gitObj).gitPull(any()).thenReturn(0)
         when(gitObj).gitShallowClone(any(), any()).thenReturn(0)

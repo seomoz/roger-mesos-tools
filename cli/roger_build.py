@@ -69,8 +69,8 @@ class RogerBuild(object):
             if 'name' in config:
                 config_name = config['name']
             common_repo = config.get('repo', '')
-            if 'env' not in args:
-                args.env = ""
+            '''if 'env' not in args:
+                args.env = "" '''
             data = appObj.getAppData(config_dir, args.config_file, args.app_name)
             if not data:
                 raise ValueError('Application with name [{}] or data for it not found at {}/{}.'.format(

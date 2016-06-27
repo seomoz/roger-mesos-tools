@@ -17,6 +17,8 @@ from mockito import mock, when, verify
 from mockito.matchers import any
 from mock import MagicMock
 from hooks import Hooks
+from cli.utils import Utils
+from statsd import StatsClient
 
 # Test basic functionalities of roger-push script
 
@@ -53,10 +55,12 @@ class Testcontainer(unittest.TestCase):
         marathon = mock(Marathon)
         mockedHooks = mock(Hooks)
         roger_push = RogerPush()
-        when(mockedHooks).run_hook(any(), any(), any()).thenReturn(0)
+        roger_push.utils = mock(Utils)
+        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
         roger_env = self.roger_env
         config = self.config
         data = self.data
+        sc = mock(StatsClient)
         frameworkUtils = mock(FrameworkUtils)
         when(frameworkUtils).getFramework(data).thenReturn(marathon)
         when(marathon).getName().thenReturn('Marathon')
@@ -66,8 +70,13 @@ class Testcontainer(unittest.TestCase):
             self.base_dir + "/tests/secrets")
         when(settings).getTemplatesDir().thenReturn(
             self.base_dir + "/tests/templates")
+
+        when(sc).timing(any(), any()).thenReturn(any())
+        when(roger_push.utils).getStatsClient().thenReturn(sc)
+        when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(settings).getConfigDir().thenReturn(self.configs_dir)
         when(settings).getCliDir().thenReturn(self.base_dir)
+        when(settings).getUser().thenReturn(any())
         when(appConfig).getRogerEnv(self.configs_dir).thenReturn(roger_env)
         when(appConfig).getConfig(self.configs_dir,
                                   "roger_single_container_var_tests.json").thenReturn(config)
