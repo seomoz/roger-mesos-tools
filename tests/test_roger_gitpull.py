@@ -44,7 +44,7 @@ class TestGitPull(unittest.TestCase):
 
         with open(self.configs_dir + '/app.json') as config:
             config = json.load(config)
-        with open(self.configs_dir + '/roger-env.json') as roger:
+        with open(self.configs_dir + '/roger-mesos-tools.config') as roger:
             roger_env = json.load(roger)
 
         data = config['apps']['grafana_test_app']

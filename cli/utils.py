@@ -41,10 +41,10 @@ class Utils:
         roger_env = appObj.getRogerEnv(config_dir)
         statsd_url = ""
         statsd_port = ""
-        if 'statsd_client_endpoint' in roger_env.keys():
-            statsd_url = roger_env['statsd_client_endpoint']
-        if 'statsd_client_port' in roger_env.keys():
-            statsd_port = int(roger_env['statsd_client_port'])
+        if 'statsd_endpoint' in roger_env.keys():
+            statsd_url = roger_env['statsd_endpoint']
+        if 'statsd_port' in roger_env.keys():
+            statsd_port = int(roger_env['statsd_port'])
         return statsd.StatsClient(statsd_url, statsd_port)
 
     def get_identifier(self, config_name, user_name, app_name):
