@@ -186,7 +186,7 @@ class RogerBuild(object):
                     args = argparse.ArgumentParser(description='Exception Handling.')
                     args.add_argument('app_name', metavar='app_name', help="Exception Handling")
                     args.add_argument('env', metavar='env', help="Exception Handling")
-                    args.app_name=""
+                    args.app_name = ""
                     args.env = "dev"
 
                 if 'settingObj' not in globals() or 'settingObj' not in locals():

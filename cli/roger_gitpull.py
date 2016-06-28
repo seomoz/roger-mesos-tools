@@ -136,7 +136,7 @@ class RogerGitPull(object):
                 if 'args' not in globals() or 'args' not in locals():
                     args = argparse.ArgumentParser(description='Exception Handling.')
                     args.add_argument('app_name', metavar='application', help="Exception Handling")
-                    args.app_name=""
+                    args.app_name = ""
 
                 if 'settingObj' not in globals() or 'settingObj' not in locals():
                     settingObj = Settings()

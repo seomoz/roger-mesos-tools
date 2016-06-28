@@ -226,7 +226,7 @@ class RogerDeploy(object):
             # Setup for Slack-Client, token, and git user
             if 'notifications' in config:
                 self.slack = Slack(config['notifications'],
-                              '/home/vagrant/.roger_cli.conf.d/slack_token')
+                                   '/home/vagrant/.roger_cli.conf.d/slack_token')
 
             self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.application)
 
@@ -319,7 +319,7 @@ class RogerDeploy(object):
             if 'args' not in globals() or 'args' not in locals():
                 args = argparse.ArgumentParser(description='Exception Handling.')
                 args.add_argument('application', metavar='application', help="Exception Handling")
-                args.application=""
+                args.application = ""
 
             if 'settingObj' not in globals() or 'settingObj' not in locals():
                 settingObj = Settings()
