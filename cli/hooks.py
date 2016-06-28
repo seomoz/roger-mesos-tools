@@ -25,13 +25,9 @@ class Hooks:
 
     def run_hook(self, hookname, appdata, path, hook_input_metric):
         try:
-            function_execution_start_time = datetime.now()
-            execution_result = 'SUCCESS'  # Assume the execution_result to be SUCCESS unless exception occurs
-        except (Exception) as e:
-            print("The following error occurred: %s" %
-                  e, file=sys.stderr)
-        try:
             exit_code = 0
+            function_execution_start_time = datetime.now()
+            execution_result = 'SUCCESS'
             abs_path = os.path.abspath(path)
             if "hooks" in appdata and hookname in appdata["hooks"]:
                 command = appdata["hooks"][hookname]
