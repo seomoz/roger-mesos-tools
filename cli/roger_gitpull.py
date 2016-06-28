@@ -54,7 +54,7 @@ class RogerGitPull(object):
             function_execution_start_time = datetime.now()
             execution_result = 'SUCCESS'  # Assume the execution_result to be SUCCESS unless exception occurs
             environment = ""
-            if 'environment' in args:
+            if not hasattr(args, "environment"):
                 environment = args.environment
             settingObj = settings
             appObj = appConfig

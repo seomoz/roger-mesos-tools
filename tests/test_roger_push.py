@@ -6,6 +6,7 @@ import os
 import argparse
 from jinja2 import Template, exceptions
 import json
+import yaml
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(
     os.path.dirname(os.path.realpath(__file__)), os.pardir, "cli")))
@@ -19,6 +20,8 @@ from mock import MagicMock
 from mockito.matchers import any
 from settings import Settings
 from hooks import Hooks
+from cli.utils import Utils
+from statsd import StatsClient
 
 # Test basic functionalities of roger-push script
 
@@ -48,7 +51,7 @@ class TestPush(unittest.TestCase):
                   u'vars': {u'environment': {u'prod': {u'mem': u'2048', u'cpus': u'2'}, u'test': {u'env_value1': u'4', u'env_value2': u'8'}, u'dev': {u'mem': u'512', u'cpus': u'1'}, u'stage': {u'mem': u'1024', u'cpus': u'1'}}, u'global': {u'instances': u'1', u'network': u'BRIDGE', u'env_value1': u'3', u'env_value2': u'3'}}}
 
         with open(self.configs_dir + '/roger-mesos-tools.config') as roger:
-            roger_env = json.load(roger)
+            roger_env = yaml.load(roger)
         data = config['apps']['grafana_test_app']
         self.config = config
         self.roger_env = roger_env
@@ -134,12 +137,18 @@ class TestPush(unittest.TestCase):
         settings = mock(Settings)
         appConfig = mock(AppConfig)
         roger_push = RogerPush()
+        roger_push.utils = mock(Utils)
         marathon = mock(Marathon)
         mockedHooks = mock(Hooks)
-        when(mockedHooks).run_hook(any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
         roger_env = self.roger_env
         config = self.config
         data = self.data
+        sc = mock(StatsClient)
+
+        when(sc).timing(any(), any()).thenReturn(any())
+        when(roger_push.utils).getStatsClient().thenReturn(sc)
+        when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(marathon).put(any(), any(), any()).thenReturn("Response [200]")
         frameworkUtils = mock(FrameworkUtils)
         when(frameworkUtils).getFramework(data).thenReturn(marathon)
@@ -180,12 +189,18 @@ class TestPush(unittest.TestCase):
         settings = mock(Settings)
         appConfig = mock(AppConfig)
         roger_push = RogerPush()
+        roger_push.utils = mock(Utils)
         marathon = mock(Marathon)
         mockedHooks = mock(Hooks)
-        when(mockedHooks).run_hook(any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
         roger_env = self.roger_env
         config = self.test_config
         data = self.test_data
+        sc = mock(StatsClient)
+
+        when(sc).timing(any(), any()).thenReturn(any())
+        when(roger_push.utils).getStatsClient().thenReturn(sc)
+        when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(marathon).getName().thenReturn('Marathon')
         when(marathon).put(any(), any(), any()).thenReturn("Response [200]")
         when(marathon).put(any(), any(), any()).thenReturn("Response [200]")
@@ -200,6 +215,7 @@ class TestPush(unittest.TestCase):
             self.base_dir + "/tests/templates")
         when(settings).getConfigDir().thenReturn(self.configs_dir)
         when(settings).getCliDir().thenReturn(self.base_dir)
+        when(settings).getUser().thenReturn(any())
         when(appConfig).getRogerEnv(self.configs_dir).thenReturn(roger_env)
         when(appConfig).getConfig(any(), any()).thenReturn(config)
         when(appConfig).getAppData(any(), any(), any()).thenReturn(data)
@@ -237,12 +253,18 @@ class TestPush(unittest.TestCase):
         settings = mock(Settings)
         appConfig = mock(AppConfig)
         roger_push = RogerPush()
+        roger_push.utils = mock(Utils)
         marathon = mock(Marathon)
         mockedHooks = mock(Hooks)
         when(mockedHooks).run_hook(any(), any(), any()).thenReturn(0)
         roger_env = self.roger_env
         config = self.config
         data = self.data
+        sc = mock(StatsClient)
+
+        when(sc).timing(any(), any()).thenReturn(any())
+        when(roger_push.utils).getStatsClient().thenReturn(sc)
+        when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(marathon).put(any(), any(), any()).thenReturn("Response [200]")
         frameworkUtils = mock(FrameworkUtils)
         when(frameworkUtils).getFramework(data).thenReturn(marathon)
@@ -254,6 +276,7 @@ class TestPush(unittest.TestCase):
             self.base_dir + "/tests/templates")
         when(settings).getConfigDir().thenReturn(self.configs_dir)
         when(settings).getCliDir().thenReturn(self.base_dir)
+        when(settings).getUser().thenReturn(any())
         when(appConfig).getRogerEnv(any()).thenReturn(roger_env)
         when(appConfig).getConfig(any(), any()).thenReturn(config)
         when(appConfig).getAppData(any(), any(), any()).thenReturn(data)
@@ -352,7 +375,7 @@ class TestPush(unittest.TestCase):
         with open(self.configs_dir + '/roger_push_unresolved_jinja.json') as config:
             config = json.load(config)
         with open(self.configs_dir + '/roger-mesos-tools.config') as roger:
-            roger_env = json.load(roger)
+            roger_env = yaml.load(roger)
         data = config['apps']['container-vars']
         self.config = config
         self.roger_env = roger_env
@@ -361,12 +384,19 @@ class TestPush(unittest.TestCase):
         settings = mock(Settings)
         appConfig = mock(AppConfig)
         roger_push = RogerPush()
+        roger_push.utils = mock(Utils)
         marathon = mock(Marathon)
         mockedHooks = mock(Hooks)
-        when(mockedHooks).run_hook(any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
         roger_env = self.roger_env
         config = self.config
         data = self.data
+
+        sc = mock(StatsClient)
+        when(sc).timing(any(), any()).thenReturn(any())
+        when(roger_push.utils).getStatsClient().thenReturn(sc)
+        when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
+
         frameworkUtils = mock(FrameworkUtils)
         when(frameworkUtils).getFramework(data).thenReturn(marathon)
         when(marathon).getName().thenReturn('Marathon')
@@ -378,6 +408,7 @@ class TestPush(unittest.TestCase):
             self.base_dir + "/tests/templates")
         when(settings).getConfigDir().thenReturn(self.configs_dir)
         when(settings).getCliDir().thenReturn(self.base_dir)
+        when(settings).getUser().thenReturn(any())
         when(appConfig).getRogerEnv(self.configs_dir).thenReturn(roger_env)
         when(appConfig).getConfig(self.configs_dir,
                                   "roger_push_unresolved_jinja.json").thenReturn(config)
@@ -402,12 +433,19 @@ class TestPush(unittest.TestCase):
         settings = mock(Settings)
         appConfig = mock(AppConfig)
         roger_push = RogerPush()
+        roger_push.utils = mock(Utils)
         marathon = mock(Marathon)
         mockedHooks = mock(Hooks)
         frameworkUtils = mock(FrameworkUtils)
         roger_env = self.roger_env
         appdata = self.data
         config = self.config
+
+        sc = mock(StatsClient)
+        when(sc).timing(any(), any()).thenReturn(any())
+        when(roger_push.utils).getStatsClient().thenReturn(sc)
+        when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
+
         when(frameworkUtils).getFramework(any()).thenReturn(marathon)
         when(marathon).getName().thenReturn('Marathon')
         when(settings).getComponentsDir().thenReturn(
@@ -418,8 +456,9 @@ class TestPush(unittest.TestCase):
             self.base_dir + "/tests/templates")
         when(settings).getConfigDir().thenReturn(self.configs_dir)
         when(settings).getCliDir().thenReturn(self.base_dir)
+        when(settings).getUser().thenReturn(any())
         when(appConfig).getRogerEnv(self.configs_dir).thenReturn(roger_env)
-        when(mockedHooks).run_hook(any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
         when(appConfig).getRogerEnv(any()).thenReturn(roger_env)
 
         appdata["hooks"] = dict([("pre_push", "some command")])
@@ -435,18 +474,25 @@ class TestPush(unittest.TestCase):
         args.skip_push = True
         return_code = roger_push.main(
             settings, appConfig, frameworkUtils, mockedHooks, args)
-        verify(mockedHooks).run_hook("pre_push", any(), any())
+        verify(mockedHooks).run_hook("pre_push", any(), any(), any())
 
     def test_roger_push_calls_postpush_hook_when_present(self):
         settings = mock(Settings)
         appConfig = mock(AppConfig)
         roger_push = RogerPush()
+        roger_push.utils = mock(Utils)
         marathon = mock(Marathon)
         mockedHooks = mock(Hooks)
         frameworkUtils = mock(FrameworkUtils)
         roger_env = self.roger_env
         appdata = self.data
         config = self.config
+
+        sc = mock(StatsClient)
+        when(sc).timing(any(), any()).thenReturn(any())
+        when(roger_push.utils).getStatsClient().thenReturn(sc)
+        when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
+
         when(frameworkUtils).getFramework(any()).thenReturn(marathon)
         when(marathon).getName().thenReturn('Marathon')
         when(settings).getComponentsDir().thenReturn(
@@ -457,8 +503,9 @@ class TestPush(unittest.TestCase):
             self.base_dir + "/tests/templates")
         when(settings).getConfigDir().thenReturn(self.configs_dir)
         when(settings).getCliDir().thenReturn(self.base_dir)
+        when(settings).getUser().thenReturn(any())
         when(appConfig).getRogerEnv(self.configs_dir).thenReturn(roger_env)
-        when(mockedHooks).run_hook(any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
         when(appConfig).getRogerEnv(any()).thenReturn(roger_env)
 
         appdata["hooks"] = dict([("post_push", "some command")])
@@ -474,7 +521,7 @@ class TestPush(unittest.TestCase):
         args.skip_push = True
         return_code = roger_push.main(
             settings, appConfig, frameworkUtils, mockedHooks, args)
-        verify(mockedHooks).run_hook("post_push", any(), any())
+        verify(mockedHooks).run_hook("post_push", any(), any(), any())
 
     def test_roger_push_verify_default_env_use(self):
         settings = mock(Settings)
@@ -513,10 +560,17 @@ class TestPush(unittest.TestCase):
         roger_env = self.roger_env
         config = self.config
         appdata = self.data
+
+        sc = mock(StatsClient)
+        when(sc).timing(any(), any()).thenReturn(any())
+        when(roger_push.utils).getStatsClient().thenReturn(sc)
+        when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
+
         frameworkUtils = mock(FrameworkUtils)
         when(marathon).getName().thenReturn('Marathon')
         when(settings).getConfigDir().thenReturn(self.configs_dir)
-        when(mockedHooks).run_hook(any(), any(), any()).thenReturn(0)
+        when(settings).getUser().thenReturn(any())
+        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
         when(appConfig).getAppData(any(), any(), any()).thenReturn(appdata)
         when(appConfig).getRogerEnv(self.configs_dir).thenReturn(roger_env)
         when(appConfig).getConfig(any(), any()).thenReturn(config)
@@ -536,12 +590,17 @@ class TestPush(unittest.TestCase):
         settings = mock(Settings)
         appConfig = mock(AppConfig)
         roger_push = RogerPush()
+        roger_push.utils = mock(Utils)
         marathon = mock(Marathon)
         mockedHooks = mock(Hooks)
         frameworkUtils = mock(FrameworkUtils)
         roger_env = self.roger_env
         appdata = self.data
         config = self.config
+        sc = mock(StatsClient)
+        when(sc).timing(any(), any()).thenReturn(any())
+        when(roger_push.utils).getStatsClient().thenReturn(sc)
+        when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(frameworkUtils).getFramework(any()).thenReturn(marathon)
         when(marathon).getName().thenReturn('Marathon')
         when(settings).getComponentsDir().thenReturn(
@@ -552,8 +611,9 @@ class TestPush(unittest.TestCase):
             self.base_dir + "/tests/templates")
         when(settings).getConfigDir().thenReturn(self.configs_dir)
         when(settings).getCliDir().thenReturn(self.base_dir)
+        when(settings).getUser().thenReturn(any())
         when(appConfig).getRogerEnv(self.configs_dir).thenReturn(roger_env)
-        when(mockedHooks).run_hook(any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
         when(appConfig).getRogerEnv(any()).thenReturn(roger_env)
 
         appdata["hooks"] = dict([("post_push", "some command")])
@@ -608,6 +668,7 @@ class TestPush(unittest.TestCase):
         settings = mock(Settings)
         appConfig = mock(AppConfig)
         roger_push = RogerPush()
+        roger_push.utils = mock(Utils)
         marathon = mock(Marathon)
         mockedHooks = mock(Hooks)
         roger_env = self.roger_env
@@ -619,6 +680,12 @@ class TestPush(unittest.TestCase):
         when(marathon).runDeploymentChecks(any(), any()).thenReturn(True)
         frameworkUtils = mock(FrameworkUtils)
         frameworkUtils = mock(FrameworkUtils)
+
+        sc = mock(StatsClient)
+        when(sc).timing(any(), any()).thenReturn(any())
+        when(roger_push.utils).getStatsClient().thenReturn(sc)
+        when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
+
         when(frameworkUtils).getFramework(data).thenReturn(marathon)
         when(settings).getComponentsDir().thenReturn(
             self.base_dir + "/tests/components")
@@ -628,7 +695,8 @@ class TestPush(unittest.TestCase):
             self.base_dir + "/tests/templates")
         when(settings).getConfigDir().thenReturn(self.configs_dir)
         when(settings).getCliDir().thenReturn(self.base_dir)
-        when(mockedHooks).run_hook(any(), any(), any()).thenReturn(0)
+        when(settings).getUser().thenReturn(any())
+        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
         when(appConfig).getRogerEnv(self.configs_dir).thenReturn(roger_env)
         when(appConfig).getConfig(any(), any()).thenReturn(config)
         when(appConfig).getAppData(any(), any(), any()).thenReturn(data)
@@ -648,11 +716,18 @@ class TestPush(unittest.TestCase):
         settings = mock(Settings)
         appConfig = mock(AppConfig)
         roger_push = RogerPush()
+        roger_push.utils = mock(Utils)
         marathon = mock(Marathon)
         mockedHooks = mock(Hooks)
         roger_env = self.roger_env
         config = self.config
         data = self.data
+
+        sc = mock(StatsClient)
+        when(sc).timing(any(), any()).thenReturn(any())
+        when(roger_push.utils).getStatsClient().thenReturn(sc)
+        when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
+
         when(marathon).put(any(), any(), any()).thenReturn("Response [200]")
         frameworkUtils = mock(FrameworkUtils)
         when(frameworkUtils).getFramework(data).thenReturn(marathon)
@@ -665,7 +740,8 @@ class TestPush(unittest.TestCase):
             self.base_dir + "/tests/templates")
         when(settings).getConfigDir().thenReturn(self.configs_dir)
         when(settings).getCliDir().thenReturn(self.base_dir)
-        when(mockedHooks).run_hook(any(), any(), any()).thenReturn(0)
+        when(settings).getUser().thenReturn(any())
+        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
         when(appConfig).getRogerEnv(self.configs_dir).thenReturn(roger_env)
         when(appConfig).getConfig(any(), any()).thenReturn(config)
         when(appConfig).getAppData(any(), any(), any()).thenReturn(data)
@@ -687,11 +763,18 @@ class TestPush(unittest.TestCase):
         settings = mock(Settings)
         appConfig = mock(AppConfig)
         roger_push = RogerPush()
+        roger_push.utils = mock(Utils)
         marathon = mock(Marathon)
         mockedHooks = mock(Hooks)
         roger_env = self.roger_env
         config = self.config
         data = self.data
+
+        sc = mock(StatsClient)
+        when(sc).timing(any(), any()).thenReturn(any())
+        when(roger_push.utils).getStatsClient().thenReturn(sc)
+        when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
+
         frameworkUtils = mock(FrameworkUtils)
         when(frameworkUtils).getFramework(data).thenReturn(marathon)
         when(marathon).getName().thenReturn('Marathon')
@@ -706,7 +789,8 @@ class TestPush(unittest.TestCase):
             self.base_dir + "/tests/templates")
         when(settings).getConfigDir().thenReturn(self.configs_dir)
         when(settings).getCliDir().thenReturn(self.base_dir)
-        when(mockedHooks).run_hook(any(), any(), any()).thenReturn(0)
+        when(settings).getUser().thenReturn(any())
+        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
         when(appConfig).getRogerEnv(self.configs_dir).thenReturn(roger_env)
         when(appConfig).getConfig(any(), any()).thenReturn(config)
         when(appConfig).getAppData(any(), any(), any()).thenReturn(data)
@@ -728,11 +812,18 @@ class TestPush(unittest.TestCase):
         settings = mock(Settings)
         appConfig = mock(AppConfig)
         roger_push = RogerPush()
+        roger_push.utils = mock(Utils)
         marathon = mock(Marathon)
         mockedHooks = mock(Hooks)
         roger_env = self.roger_env
         config = self.config
         data = self.data
+
+        sc = mock(StatsClient)
+        when(sc).timing(any(), any()).thenReturn(any())
+        when(roger_push.utils).getStatsClient().thenReturn(sc)
+        when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
+
         when(marathon).put(any(), any(), any()).thenReturn("Response [200]")
         frameworkUtils = mock(FrameworkUtils)
         when(frameworkUtils).getFramework(data).thenReturn(marathon)
@@ -745,10 +836,11 @@ class TestPush(unittest.TestCase):
             self.base_dir + "/tests/templates")
         when(settings).getConfigDir().thenReturn(self.configs_dir)
         when(settings).getCliDir().thenReturn(self.base_dir)
+        when(settings).getUser().thenReturn(any())
         when(appConfig).getRogerEnv(any()).thenReturn(roger_env)
         when(appConfig).getConfig(any(), any()).thenReturn(config)
         when(appConfig).getAppData(any(), any(), any()).thenReturn(data)
-        when(mockedHooks).run_hook(any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
 
         args = self.args
         args.env = "dev"

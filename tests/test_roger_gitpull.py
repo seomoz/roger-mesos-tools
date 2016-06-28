@@ -4,6 +4,7 @@ from __future__ import print_function
 import unittest
 import os
 import json
+import yaml
 import shutil
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(
@@ -18,6 +19,8 @@ from mockito.matchers import any
 from marathon import Marathon
 from gitutils import GitUtils
 from frameworkUtils import FrameworkUtils
+from cli.utils import Utils
+from statsd import StatsClient
 
 # Test basic functionalities of roger-git-pull script
 
@@ -45,7 +48,7 @@ class TestGitPull(unittest.TestCase):
         with open(self.configs_dir + '/app.json') as config:
             config = json.load(config)
         with open(self.configs_dir + '/roger-mesos-tools.config') as roger:
-            roger_env = json.load(roger)
+            roger_env = yaml.load(roger)
 
         data = config['apps']['grafana_test_app']
         self.roger_env = roger_env
@@ -64,6 +67,7 @@ class TestGitPull(unittest.TestCase):
         settings = mock(Settings)
         appConfig = mock(AppConfig)
         roger_gitpull = RogerGitPull()
+        roger_gitpull.utils = mock(Utils)
         marathon = mock(Marathon)
         mockedHooks = mock(Hooks)
         gitObj = mock(GitUtils)
@@ -71,6 +75,11 @@ class TestGitPull(unittest.TestCase):
         config = self.config
         roger_env = self.roger_env
         repo_name = 'roger'
+        sc = mock(StatsClient)
+
+        when(sc).timing(any(), any()).thenReturn(any())
+        when(roger_gitpull.utils).getStatsClient().thenReturn(sc)
+        when(roger_gitpull.utils).get_identifier(any(), any(), any()).thenReturn(any())
 
         when(marathon).put(self.components_dir + '/test-roger-grafana.json',
                            roger_env['environments']['dev'], 'grafana_test_app').thenReturn("Response [200]")
@@ -84,6 +93,7 @@ class TestGitPull(unittest.TestCase):
             self.base_dir + "/tests/templates")
         when(settings).getConfigDir().thenReturn(self.configs_dir)
         when(settings).getCliDir().thenReturn(self.base_dir)
+        when(settings).getUser().thenReturn('test_user')
         when(appConfig).getRogerEnv(self.configs_dir).thenReturn(roger_env)
         when(appConfig).getConfig(
             self.configs_dir, "app.json").thenReturn(config)
@@ -95,8 +105,9 @@ class TestGitPull(unittest.TestCase):
         args.app_name = "grafana_test_app"
         args.config_file = config_file
         args.branch = "master"
+        args.environment = 'test'
         args.directory = self.work_dir
-        when(mockedHooks).run_hook(any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
         when(gitObj).gitPull(any()).thenReturn(0)
         when(gitObj).gitShallowClone(any(), any()).thenReturn(0)
         return_code = roger_gitpull.main(
@@ -124,24 +135,33 @@ class TestGitPull(unittest.TestCase):
         when(settings).getConfigDir().thenReturn(self.configs_dir)
         when(appConfig).getAppData(any(), any(), any()).thenReturn(appdata)
         config = self.config
+
+        sc = mock(StatsClient)
+        when(sc).timing(any(), any()).thenReturn(any())
+        when(roger_gitpull.utils).getStatsClient().thenReturn(sc)
+        when(roger_gitpull.utils).get_identifier(any(), any(), any()).thenReturn(any())
+        when(settings).getUser().thenReturn('test_user')
+
         when(appConfig).getConfig(any(), any()).thenReturn(config)
         when(appConfig).getRepoName(any()).thenReturn(repo_name)
         args = self.args
         args.config_file = 'any.json'
         args.app_name = 'any app'
+        args.environment = 'test'
         args.branch = "some_branch"
         args.directory = '/tmp'
         when(gitObj).gitPull(any()).thenReturn(0)
         when(gitObj).gitShallowClone(any(), any()).thenReturn(0)
-        when(mockedHooks).run_hook(any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
         return_code = roger_gitpull.main(
             settings, appConfig, gitObj, mockedHooks, args)
-        verify(mockedHooks).run_hook("pre_gitpull", any(), any())
+        verify(mockedHooks).run_hook("pre_gitpull", any(), any(), any())
 
     def test_roger_gitpull_calls_postgitpull_hook_when_present(self):
         settings = mock(Settings)
         appConfig = mock(AppConfig)
         roger_gitpull = RogerGitPull()
+        roger_gitpull.utils = mock(Utils)
         mockedHooks = mock(Hooks)
         gitObj = mock(GitUtils)
         roger_env = {}
@@ -154,6 +174,13 @@ class TestGitPull(unittest.TestCase):
         appdata["hooks"] = dict([("post_gitpull", "some command")])
         when(appConfig).getAppData(any(), any(), any()).thenReturn(appdata)
         config = self.config
+
+        sc = mock(StatsClient)
+        when(sc).timing(any(), any()).thenReturn(any())
+        when(roger_gitpull.utils).getStatsClient().thenReturn(sc)
+        when(roger_gitpull.utils).get_identifier(any(), any(), any()).thenReturn(any())
+
+        when(settings).getUser().thenReturn('test_user')
         when(appConfig).getConfig(any(), any()).thenReturn(config)
         when(appConfig).getRepoUrl(any()).thenReturn(repo_name)
         when(appConfig).getRepoName(any()).thenReturn(repo_name)
@@ -162,12 +189,13 @@ class TestGitPull(unittest.TestCase):
         args.app_name = 'any app'
         args.branch = "some_branch"
         args.directory = '/tmp'
+        args.environment = 'test'
         when(gitObj).gitPull(any()).thenReturn(0)
         when(gitObj).gitShallowClone(any(), any()).thenReturn(0)
-        when(mockedHooks).run_hook(any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
         return_code = roger_gitpull.main(
             settings, appConfig, gitObj, mockedHooks, args)
-        verify(mockedHooks).run_hook("post_gitpull", any(), any())
+        verify(mockedHooks).run_hook("post_gitpull", any(), any(), any())
 
     def tearDown(self):
         pass

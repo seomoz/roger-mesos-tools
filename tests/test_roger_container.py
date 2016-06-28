@@ -5,6 +5,7 @@ import unittest
 import os
 import argparse
 import json
+import yaml
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(
     os.path.dirname(os.path.realpath(__file__)), os.pardir, "cli")))
@@ -43,7 +44,7 @@ class Testcontainer(unittest.TestCase):
         with open(self.configs_dir + '/roger_single_container_var_tests.json') as config:
             config = json.load(config)
         with open(self.configs_dir + '/roger-mesos-tools.config') as roger:
-            roger_env = json.load(roger)
+            roger_env = yaml.load(roger)
         data = config['apps']['container-vars']
         self.config = config
         self.roger_env = roger_env
