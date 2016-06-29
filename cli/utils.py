@@ -9,6 +9,7 @@ from cli.appconfig import AppConfig
 import hashlib
 import time
 
+
 class Utils:
 
     # Expected format:
@@ -48,5 +49,5 @@ class Utils:
         return statsd.StatsClient(statsd_url, statsd_port)
 
     def get_identifier(self, config_name, user_name, app_name):
-        hash_value =  str(int(time.time())) + "-" + str(hashlib.sha224(config_name+"-"+user_name+"-"+app_name).hexdigest())[:8]
+        hash_value = str(int(time.time())) + "-" + str(hashlib.sha224(config_name + "-" + user_name + "-" + app_name).hexdigest())[:8]
         return hash_value

@@ -39,7 +39,7 @@ class TestMarathon(unittest.TestCase):
         assert len(message_list) == 1
         message_list = []
         group_details = {}
-        # One of the conflicting apps have affinity = False, leads to a failed 
+        # One of the conflicting apps have affinity = False, leads to a failed
         # validation for HTTP_PREFIX
         group_details['/test/app3'] = ('/http_prefix3', ['9000', '9001'], False)
         group_details['/test/app5'] = ('/http_prefix3', ['8000', '8001'], True)

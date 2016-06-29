@@ -64,7 +64,7 @@ class RogerBuild(object):
             if 'name' in config:
                 config_name = config['name']
             common_repo = config.get('repo', '')
-            if 'env' not in args:
+            if not hasattr(args, "env"):
                 args.env = ""
             data = appObj.getAppData(config_dir, args.config_file, args.app_name)
             if not data:
@@ -186,7 +186,7 @@ class RogerBuild(object):
                     args = argparse.ArgumentParser(description='Exception Handling.')
                     args.add_argument('app_name', metavar='app_name', help="Exception Handling")
                     args.add_argument('env', metavar='env', help="Exception Handling")
-                    args.app_name=""
+                    args.app_name = ""
                     args.env = "dev"
 
                 if 'settingObj' not in globals() or 'settingObj' not in locals():
@@ -195,7 +195,7 @@ class RogerBuild(object):
                 sc = self.utils.getStatsClient()
                 if not hasattr(self, "identifier"):
                     self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.app_name)
-                time_take_milliseonds = (( datetime.now() - function_execution_start_time ).total_seconds() * 1000 )
+                time_take_milliseonds = ((datetime.now() - function_execution_start_time).total_seconds() * 1000)
                 input_metric = "roger-tools.roger_build_time," + "app_name=" + str(args.app_name) + ",identifier=" + str(self.identifier) + ",outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",env=" + str(args.env) + ",user=" + str(settingObj.getUser())
                 sc.timing(input_metric, time_take_milliseonds)
             except (Exception) as e:

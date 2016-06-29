@@ -25,14 +25,9 @@ class Hooks:
 
     def run_hook(self, hookname, appdata, path, hook_input_metric):
         try:
-            function_execution_start_time = datetime.now()
-            execution_result = 'SUCCESS'  # Assume the execution_result to be SUCCESS unless exception occurs
-            sc = self.utils.getStatsClient()
-        except (Exception) as e:
-            print("The following error occurred: %s" %
-                  e, file=sys.stderr)
-        try:
             exit_code = 0
+            function_execution_start_time = datetime.now()
+            execution_result = 'SUCCESS'
             abs_path = os.path.abspath(path)
             if "hooks" in appdata and hookname in appdata["hooks"]:
                 command = appdata["hooks"][hookname]
@@ -47,7 +42,12 @@ class Hooks:
             raise
         finally:
             try:
-                time_take_milliseonds = (( datetime.now() - function_execution_start_time ).total_seconds() * 1000 )
+                if 'execution_result' not in globals() or 'execution_result' not in locals():
+                    execution_result = 'FAILURE'
+                if 'function_execution_start_time' not in globals() or 'function_execution_start_time' not in locals():
+                    function_execution_start_time = datetime.now()
+                sc = self.utils.getStatsClient()
+                time_take_milliseonds = ((datetime.now() - function_execution_start_time).total_seconds() * 1000)
                 hook_input_metric = hook_input_metric + ",outcome=" + str(execution_result)
                 sc.timing(hook_input_metric, time_take_milliseonds)
             except (Exception) as e:

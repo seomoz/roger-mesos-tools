@@ -8,6 +8,7 @@ from abc import ABCMeta, abstractmethod
 
 settings = Settings()
 
+
 class Framework(object):
     __metaclass__ = ABCMeta
 

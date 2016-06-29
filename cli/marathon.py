@@ -118,7 +118,7 @@ class Marathon(Framework):
             http_prefix = detail[0]
             enable_affinity = detail[2]
             if (http_prefix in http_prefixes):
-                if enable_affinity == False:
+                if enable_affinity is False:
                     message_list.append(
                         "HTTP_PREFIX conflict in Marathon template file. HTTP_PREFIX '{}' is used in multiple places.".format(http_prefix))
                     result = False

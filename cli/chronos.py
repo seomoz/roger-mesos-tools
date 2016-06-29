@@ -9,6 +9,7 @@ from cli.framework import Framework
 from cli.utils import Utils
 utils = Utils()
 
+
 class Chronos(Framework):
 
     def __init__(self):
@@ -43,7 +44,7 @@ class Chronos(Framework):
                                 'Content-type': 'application/json', 'act-as-user': self.act_as_user}, auth=(self.user, self.passw))
         else:
             resp = requests.put(deploy_url, data=data, headers={
-                               'Content-type': 'application/json'}, auth=(self.user, self.passw))
+                                'Content-type': 'application/json'}, auth=(self.user, self.passw))
         chronos_message = "{}".format(resp)
         print(chronos_message)
         return resp

@@ -16,7 +16,7 @@ class AppConfig:
         env_file = '{0}/roger-mesos-tools.config'
         with open(env_file.format(config_dir)) as roger_env_file_obj:
             if env_file.lower().endswith('.config'):
-                roger_env = yaml.load(roger_env_file_obj) 
+                roger_env = yaml.load(roger_env_file_obj)
         return roger_env
 
     def getConfig(self, config_dir, config_file):
