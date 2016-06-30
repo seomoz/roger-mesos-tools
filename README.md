@@ -1,4 +1,4 @@
-[![Build Status]](https://travis-ci.org/seomoz/roger-mesos-tools)
+[[Build Status]](https://travis-ci.org/seomoz/roger-mesos-tools)
 
 # roger-mesos-tools
 
