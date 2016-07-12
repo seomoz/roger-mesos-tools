@@ -49,11 +49,13 @@ def describe():
 def getGitSha(work_dir, repo, branch, gitObj):
     return gitObj.getGitSha(repo, branch, work_dir)
 
+
 def verify(value):
     for item in value.split("."):
         if not item.isdigit():
             return False
     return True
+
 
 class Slack:
 
