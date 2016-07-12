@@ -49,6 +49,11 @@ def describe():
 def getGitSha(work_dir, repo, branch, gitObj):
     return gitObj.getGitSha(repo, branch, work_dir)
 
+def verify(value):
+    for item in value.split("."):
+        if not item.isdigit():
+            return False
+    return True
 
 class Slack:
 
@@ -145,7 +150,8 @@ class RogerDeploy(object):
                         skip_image = True
                         break
                 if skip_image is False:
-                    image_version_list.append(matchObj.group().split('/v')[1])
+                    if verify(str(matchObj.group().split('v')[-1])):
+                        image_version_list.append(matchObj.group().split('v')[-1])
 
         if len(image_version_list) == 0:  # Create initial version
             version = "{0}/v0.1.0".format(sha)
