@@ -5,6 +5,8 @@ import os
 import subprocess
 import sys
 import contextlib
+import urllib2
+import json
 
 
 @contextlib.contextmanager
@@ -32,3 +34,28 @@ class DockerUtils:
     def docker_push(self, image):
         exit_code = os.system("docker push {0}".format(image))
         return exit_code
+
+    def docker_search_v1(self, registry, name, application):
+        result = subprocess.check_output("docker search {0}/{1}-{2}".format(
+            registry, name, application), shell=True)
+        return result
+
+    def docker_search_v2(self, registry, name, application):
+        url = 'http://{0}/v2/_catalog'.format(registry)
+        response = urllib2.urlopen(url)
+        data = json.load(response)
+        result = ""
+        for item in data['repositories']:
+            result += item + '\n'
+        return result
+
+    def docker_search(self, registry, name, application):
+        result = ""
+        try:
+            result = self.docker_search_v2(registry, name, application)
+        except (Exception) as e:
+            print("The following error occurred when attempting search using docker v2 catalog: %s" %
+                  e, file=sys.stderr)
+            print("Attempting docker v1 search")
+            result = self.docker_search_v1(registry, name, application)
+        return result
