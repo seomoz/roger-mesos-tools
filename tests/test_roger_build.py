@@ -75,6 +75,7 @@ class TestBuild(unittest.TestCase):
             when(sc).timing(any(), any()).thenReturn(any())
             when(roger_build.utils).getStatsClient().thenReturn(sc)
             when(roger_build.utils).get_identifier(any(), any(), any()).thenReturn(any())
+            when(roger_build.utils).verify_app_name(any()).thenReturn(any())
             when(settings, strict=False).getConfigDir().thenReturn(any())
             when(settings, strict=False).getCliDir().thenReturn(any())
             when(settings).getUser().thenReturn(any())
@@ -127,6 +128,7 @@ class TestBuild(unittest.TestCase):
         when(sc).timing(any(), any()).thenReturn(any())
         when(roger_build.utils).getStatsClient().thenReturn(sc)
         when(roger_build.utils).get_identifier(any(), any(), any()).thenReturn(any())
+        when(roger_build.utils).verify_app_name(any()).thenReturn("any app")
         when(settings, strict=False).getConfigDir().thenReturn(any())
         when(settings, strict=False).getCliDir().thenReturn(any())
         when(settings).getUser().thenReturn(any())
@@ -139,7 +141,7 @@ class TestBuild(unittest.TestCase):
         when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
         return_code = roger_build.main(
             settings, appConfig, mockedHooks, dockerUtilsObj, dockerObj, args)
-        verify(mockedHooks).run_hook("pre_build", any(), any(), any())
+        verify(mockedHooks).run_hook("pre-build", any(), any(), any())
 
     def test_roger_build_calls_postbuild_hook_when_present(self):
         settings = mock(Settings)
@@ -167,6 +169,7 @@ class TestBuild(unittest.TestCase):
         when(sc).timing(any(), any()).thenReturn(any())
         when(roger_build.utils).getStatsClient().thenReturn(sc)
         when(roger_build.utils).get_identifier(any(), any(), any()).thenReturn(any())
+        when(roger_build.utils).verify_app_name(any()).thenReturn("any app")
         when(settings, strict=False).getConfigDir().thenReturn(any())
         when(settings, strict=False).getCliDir().thenReturn(any())
         when(settings).getUser().thenReturn(any())
@@ -181,7 +184,7 @@ class TestBuild(unittest.TestCase):
 
         return_code = roger_build.main(
             settings, appConfig, mockedHooks, dockerUtilsObj, dockerObj, args)
-        verify(mockedHooks).run_hook("post_build", any(), any(), any())
+        verify(mockedHooks).run_hook("post-build", any(), any(), any())
 
     def tearDown(self):
         pass

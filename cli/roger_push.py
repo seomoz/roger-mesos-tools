@@ -384,6 +384,9 @@ class RogerPush(object):
                             if args.force_push or result is True:
                                 resp = frameworkObj.put(
                                     config_file_path, environmentObj, container_name, environment)
+
+                                if hasattr(resp, "status_code"):
+                                    status_code = resp.status_code
                             else:
                                 print("Skipping push to {} framework for container {} as Validation Checks failed.".format(
                                     framework, container))
@@ -410,9 +413,8 @@ class RogerPush(object):
                             if 'container_name' not in globals() and 'container_name' not in locals():
                                 container_name = ""
 
-                            if 'resp' not in globals() and 'resp' not in locals():
-                                resp = requests.Response()
-                                resp.status_code = "500"
+                            if 'status_code' not in globals() and 'status_code' not in locals():
+                                status_code = "500"
 
                             if not hasattr(args, "app_name"):
                                 args.app_name = ""
@@ -424,7 +426,7 @@ class RogerPush(object):
                                 self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.app_name)
 
                             time_take_milliseonds = ((datetime.now() - function_execution_start_time).total_seconds() * 1000)
-                            input_metric = "roger-tools.rogeros_deployment," + "app_name=" + str(args.app_name) + ",event=push" + ",container_name=" + str(container_name) + ",identifier=" + str(self.identifier) + ",outcome=" + str(execution_result) + ",response_code=" + str(resp.status_code) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
+                            input_metric = "roger-tools.rogeros_deployment," + "app_name=" + str(args.app_name) + ",event=push" + ",container_name=" + str(container_name) + ",identifier=" + str(self.identifier) + ",outcome=" + str(execution_result) + ",response_code=" + str(status_code) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
                             sc.timing(input_metric, time_take_milliseonds)
                         except (Exception) as e:
                             print("The following error occurred: %s" %

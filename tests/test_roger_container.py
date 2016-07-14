@@ -75,6 +75,7 @@ class Testcontainer(unittest.TestCase):
         when(sc).timing(any(), any()).thenReturn(any())
         when(roger_push.utils).getStatsClient().thenReturn(sc)
         when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
+        when(roger_push.utils).verify_app_name(any()).thenReturn("test")
         when(settings).getConfigDir().thenReturn(self.configs_dir)
         when(settings).getCliDir().thenReturn(self.base_dir)
         when(settings).getUser().thenReturn(any())

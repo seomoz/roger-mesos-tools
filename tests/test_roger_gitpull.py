@@ -80,6 +80,7 @@ class TestGitPull(unittest.TestCase):
         when(sc).timing(any(), any()).thenReturn(any())
         when(roger_gitpull.utils).getStatsClient().thenReturn(sc)
         when(roger_gitpull.utils).get_identifier(any(), any(), any()).thenReturn(any())
+        when(roger_gitpull.utils).verify_app_name(any()).thenReturn("test")
 
         when(marathon).put(self.components_dir + '/test-roger-grafana.json',
                            roger_env['environments']['dev'], 'grafana_test_app').thenReturn("Response [200]")
@@ -140,6 +141,7 @@ class TestGitPull(unittest.TestCase):
         when(sc).timing(any(), any()).thenReturn(any())
         when(roger_gitpull.utils).getStatsClient().thenReturn(sc)
         when(roger_gitpull.utils).get_identifier(any(), any(), any()).thenReturn(any())
+        when(roger_gitpull.utils).verify_app_name(any()).thenReturn("test")
         when(settings).getUser().thenReturn('test_user')
 
         when(appConfig).getConfig(any(), any()).thenReturn(config)
@@ -155,7 +157,7 @@ class TestGitPull(unittest.TestCase):
         when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
         return_code = roger_gitpull.main(
             settings, appConfig, gitObj, mockedHooks, args)
-        verify(mockedHooks).run_hook("pre_gitpull", any(), any(), any())
+        verify(mockedHooks).run_hook("pre-gitpull", any(), any(), any())
 
     def test_roger_gitpull_calls_postgitpull_hook_when_present(self):
         settings = mock(Settings)
@@ -179,6 +181,7 @@ class TestGitPull(unittest.TestCase):
         when(sc).timing(any(), any()).thenReturn(any())
         when(roger_gitpull.utils).getStatsClient().thenReturn(sc)
         when(roger_gitpull.utils).get_identifier(any(), any(), any()).thenReturn(any())
+        when(roger_gitpull.utils).verify_app_name(any()).thenReturn("test")
 
         when(settings).getUser().thenReturn('test_user')
         when(appConfig).getConfig(any(), any()).thenReturn(config)
@@ -195,7 +198,7 @@ class TestGitPull(unittest.TestCase):
         when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
         return_code = roger_gitpull.main(
             settings, appConfig, gitObj, mockedHooks, args)
-        verify(mockedHooks).run_hook("post_gitpull", any(), any(), any())
+        verify(mockedHooks).run_hook("post-gitpull", any(), any(), any())
 
     def tearDown(self):
         pass
