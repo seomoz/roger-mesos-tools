@@ -80,7 +80,7 @@ class TestGitPull(unittest.TestCase):
         when(sc).timing(any(), any()).thenReturn(any())
         when(roger_gitpull.utils).getStatsClient().thenReturn(sc)
         when(roger_gitpull.utils).get_identifier(any(), any(), any()).thenReturn(any())
-        when(roger_gitpull.utils).verify_app_name(any()).thenReturn("test")
+        when(roger_gitpull.utils).extract_app_name(any()).thenReturn("test")
 
         when(marathon).put(self.components_dir + '/test-roger-grafana.json',
                            roger_env['environments']['dev'], 'grafana_test_app').thenReturn("Response [200]")
@@ -141,7 +141,7 @@ class TestGitPull(unittest.TestCase):
         when(sc).timing(any(), any()).thenReturn(any())
         when(roger_gitpull.utils).getStatsClient().thenReturn(sc)
         when(roger_gitpull.utils).get_identifier(any(), any(), any()).thenReturn(any())
-        when(roger_gitpull.utils).verify_app_name(any()).thenReturn("test")
+        when(roger_gitpull.utils).extract_app_name(any()).thenReturn("test")
         when(settings).getUser().thenReturn('test_user')
 
         when(appConfig).getConfig(any(), any()).thenReturn(config)
@@ -181,7 +181,7 @@ class TestGitPull(unittest.TestCase):
         when(sc).timing(any(), any()).thenReturn(any())
         when(roger_gitpull.utils).getStatsClient().thenReturn(sc)
         when(roger_gitpull.utils).get_identifier(any(), any(), any()).thenReturn(any())
-        when(roger_gitpull.utils).verify_app_name(any()).thenReturn("test")
+        when(roger_gitpull.utils).extract_app_name(any()).thenReturn("test")
 
         when(settings).getUser().thenReturn('test_user')
         when(appConfig).getConfig(any(), any()).thenReturn(config)

@@ -338,7 +338,7 @@ class RogerDeploy(object):
                 sc = self.utils.getStatsClient()
                 if not hasattr(self, "identifier"):
                     self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.application)
-                args.application = self.utils.verify_app_name(args.application)
+                args.application = self.utils.extract_app_name(args.application)
                 time_take_milliseonds = ((datetime.now() - function_execution_start_time).total_seconds() * 1000)
                 input_metric = "roger-tools.rogeros_deployment," + "app_name=" + str(args.application) + ",event=deploy" + ",outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser()) + ",identifier=" + str(self.identifier)
                 sc.timing(input_metric, time_take_milliseonds)

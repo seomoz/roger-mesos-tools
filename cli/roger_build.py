@@ -108,7 +108,7 @@ class RogerBuild(object):
             if not hasattr(self, "identifier"):
                 self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.app_name)
 
-            args.app_name = self.utils.verify_app_name(args.app_name)
+            args.app_name = self.utils.extract_app_name(args.app_name)
             hookname = "pre_build"
             hookname_input_metric = "roger-tools.rogeros_deployment," + "event=" + hookname + ",app_name=" + str(args.app_name) + ",identifier=" + str(self.identifier) + ",config_name=" + str(config_name) + ",env=" + str(args.env) + ",user=" + str(settingObj.getUser())
             exit_code = hooksObj.run_hook(hookname, data, file_path, hookname_input_metric)

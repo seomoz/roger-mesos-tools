@@ -137,7 +137,7 @@ class TestDeploy(unittest.TestCase):
             when(sc).timing(any(), any()).thenReturn(any())
             when(roger_deploy.utils).getStatsClient().thenReturn(sc)
             when(roger_deploy.utils).get_identifier(any(), any(), any()).thenReturn(any())
-            when(roger_deploy.utils).verify_app_name(any()).thenReturn("test")
+            when(roger_deploy.utils).extract_app_name(any()).thenReturn("test")
 
             when(marathon).getCurrentImageVersion(
                 any(), any(), any()).thenReturn("testversion/v0.1.0")
@@ -185,7 +185,7 @@ class TestDeploy(unittest.TestCase):
         when(sc).timing(any(), any()).thenReturn(any())
         when(roger_deploy.utils).getStatsClient().thenReturn(sc)
         when(roger_deploy.utils).get_identifier(any(), any(), any()).thenReturn(any())
-        when(roger_deploy.utils).verify_app_name(any()).thenReturn("test")
+        when(roger_deploy.utils).extract_app_name(any()).thenReturn("test")
         when(marathon).getCurrentImageVersion(
             any(), any(), any(), any()).thenReturn("testversion/v0.1.0")
         frameworkUtils = mock(FrameworkUtils)
@@ -235,7 +235,7 @@ class TestDeploy(unittest.TestCase):
         when(sc).timing(any(), any()).thenReturn(any())
         when(roger_deploy.utils).getStatsClient().thenReturn(sc)
         when(roger_deploy.utils).get_identifier(any(), any(), any()).thenReturn(any())
-        when(roger_deploy.utils).verify_app_name(any()).thenReturn("test")
+        when(roger_deploy.utils).extract_app_name(any()).thenReturn("test")
 
         when(marathon).getCurrentImageVersion(
             any(), any(), any()).thenReturn("testversion/v0.1.0")
@@ -302,7 +302,7 @@ class TestDeploy(unittest.TestCase):
         when(sc).timing(any(), any()).thenReturn(any())
         when(roger_deploy.utils).getStatsClient().thenReturn(sc)
         when(roger_deploy.utils).get_identifier(any(), any(), any()).thenReturn(any())
-        when(roger_deploy.utils).verify_app_name(any()).thenReturn("test")
+        when(roger_deploy.utils).extract_app_name(any()).thenReturn("test")
 
         when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
         when(gitObj).gitPull(any()).thenReturn(0)
@@ -373,7 +373,7 @@ class TestDeploy(unittest.TestCase):
         when(sc).timing(any(), any()).thenReturn(any())
         when(roger_deploy.utils).getStatsClient().thenReturn(sc)
         when(roger_deploy.utils).get_identifier(any(), any(), any()).thenReturn(any())
-        when(roger_deploy.utils).verify_app_name(any()).thenReturn("test")
+        when(roger_deploy.utils).extract_app_name(any()).thenReturn("test")
 
         when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
 
@@ -431,7 +431,7 @@ class TestDeploy(unittest.TestCase):
         when(sc).timing(any(), any()).thenReturn(any())
         when(roger_deploy.utils).getStatsClient().thenReturn(sc)
         when(roger_deploy.utils).get_identifier(any(), any(), any()).thenReturn(any())
-        when(roger_deploy.utils).verify_app_name(any()).thenReturn("test")
+        when(roger_deploy.utils).extract_app_name(any()).thenReturn("test")
 
         when(marathon).getCurrentImageVersion(
             any(), any(), any()).thenReturn("testversion/v0.1.0")
@@ -503,7 +503,7 @@ class TestDeploy(unittest.TestCase):
         when(sc).timing(any(), any()).thenReturn(any())
         when(roger_deploy.utils).getStatsClient().thenReturn(sc)
         when(roger_deploy.utils).get_identifier(any(), any(), any()).thenReturn(any())
-        when(roger_deploy.utils).verify_app_name(any()).thenReturn("test")
+        when(roger_deploy.utils).extract_app_name(any()).thenReturn("test")
 
         when(frameworkUtils).getFramework(data).thenReturn(marathon)
         when(settings).getConfigDir().thenReturn(any())

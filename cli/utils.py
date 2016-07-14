@@ -52,7 +52,7 @@ class Utils:
         hash_value = str(int(time.time())) + "-" + str(hashlib.sha224(config_name + "-" + user_name + "-" + app_name).hexdigest())[:8]
         return hash_value
 
-    def verify_app_name(self, value):
+    def extract_app_name(self, value):
         if ':' in value:
             return value.split(":")[0]
         return value
