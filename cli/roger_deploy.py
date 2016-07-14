@@ -134,8 +134,7 @@ class RogerDeploy(object):
 
     def getNextVersion(self, config, roger_env, application, branch, work_dir, repo, args, gitObj):
         sha = getGitSha(work_dir, repo, branch, gitObj)
-        docker_search = subprocess.check_output("docker search {0}/{1}-{2}".format(
-            roger_env['registry'], config['name'], application), shell=True)
+        docker_search = self.dockerUtilsObject.docker_search(roger_env['registry'], config['name'], application)
         image_version_list = []
         version = ''
         envs = []
