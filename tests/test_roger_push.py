@@ -479,7 +479,7 @@ class TestPush(unittest.TestCase):
         args.skip_push = True
         return_code = roger_push.main(
             settings, appConfig, frameworkUtils, mockedHooks, args)
-        verify(mockedHooks).run_hook("pre-push", any(), any(), any())
+        verify(mockedHooks).run_hook("pre_push", any(), any(), any())
 
     def test_roger_push_calls_postpush_hook_when_present(self):
         settings = mock(Settings)
@@ -527,7 +527,7 @@ class TestPush(unittest.TestCase):
         args.skip_push = True
         return_code = roger_push.main(
             settings, appConfig, frameworkUtils, mockedHooks, args)
-        verify(mockedHooks).run_hook("post-push", any(), any(), any())
+        verify(mockedHooks).run_hook("post_push", any(), any(), any())
 
     def test_roger_push_verify_default_env_use(self):
         settings = mock(Settings)

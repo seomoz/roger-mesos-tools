@@ -93,7 +93,7 @@ class RogerGitPull(object):
                 self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.app_name)
 
             args.app_name = self.utils.verify_app_name(args.app_name)
-            hookname = "pre-gitpull"
+            hookname = "pre_gitpull"
             hookname_input_metric = "roger-tools.rogeros_deployment," + "event=" + hookname + ",app_name=" + str(args.app_name) + ",identifier=" + str(self.identifier) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
             exit_code = hooksObj.run_hook(hookname, data, args.directory, hookname_input_metric)
             if exit_code != 0:
@@ -112,7 +112,7 @@ class RogerGitPull(object):
             if exit_code != 0:
                 raise ValueError('gitpull failed.')
 
-            hookname = "post-gitpull"
+            hookname = "post_gitpull"
             hookname_input_metric = "roger-tools.rogeros_deployment," + "event=" + hookname + ",app_name=" + str(args.app_name) + ",identifier=" + str(self.identifier) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
             exit_code = hooksObj.run_hook(hookname, data, args.directory, hookname_input_metric)
             if exit_code != 0:

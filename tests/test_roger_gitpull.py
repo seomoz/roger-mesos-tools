@@ -157,7 +157,7 @@ class TestGitPull(unittest.TestCase):
         when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
         return_code = roger_gitpull.main(
             settings, appConfig, gitObj, mockedHooks, args)
-        verify(mockedHooks).run_hook("pre-gitpull", any(), any(), any())
+        verify(mockedHooks).run_hook("pre_gitpull", any(), any(), any())
 
     def test_roger_gitpull_calls_postgitpull_hook_when_present(self):
         settings = mock(Settings)
@@ -198,7 +198,7 @@ class TestGitPull(unittest.TestCase):
         when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
         return_code = roger_gitpull.main(
             settings, appConfig, gitObj, mockedHooks, args)
-        verify(mockedHooks).run_hook("post-gitpull", any(), any(), any())
+        verify(mockedHooks).run_hook("post_gitpull", any(), any(), any())
 
     def tearDown(self):
         pass
