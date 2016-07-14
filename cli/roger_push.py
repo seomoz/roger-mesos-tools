@@ -174,6 +174,9 @@ class RogerPush(object):
                 config_name = config['name']
             roger_env = appObj.getRogerEnv(config_dir)
 
+            if not hasattr(args, "app_name"):
+                args.app_name = ""
+
             if 'registry' not in roger_env.keys():
                 raise ValueError(
                     'Registry not found in roger-mesos-tools.config file.')
@@ -267,8 +270,9 @@ class RogerPush(object):
             if not hasattr(self, "identifier"):
                 self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.app_name)
 
-            hookname = "pre_push"
-            hook_input_metric = "roger-tools." + hookname + "_time," + "app_name=" + str(args.app_name) + ",identifier=" + str(self.identifier) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
+            args.app_name = self.utils.verify_app_name(args.app_name)
+            hookname = "pre-push"
+            hook_input_metric = "roger-tools.rogeros_deployment," + "event=" + hookname + ",app_name=" + str(args.app_name) + ",identifier=" + str(self.identifier) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
             exit_code = hooksObj.run_hook(hookname, data, app_path, hook_input_metric)
             if exit_code != 0:
                 raise ValueError('{} hook failed.'.format(hookname))
@@ -378,7 +382,7 @@ class RogerPush(object):
                                 config_file_path, environment)
 
                             if args.force_push or result is True:
-                                frameworkObj.put(
+                                resp = frameworkObj.put(
                                     config_file_path, environmentObj, container_name, environment)
                             else:
                                 print("Skipping push to {} framework for container {} as Validation Checks failed.".format(
@@ -390,16 +394,45 @@ class RogerPush(object):
                         raise
                     finally:
                         try:
+
+                            if 'function_execution_start_time' not in globals() and 'function_execution_start_time' not in locals():
+                                function_execution_start_time = datetime.now()
+
+                            if 'execution_result' not in globals() and 'execution_result' not in locals():
+                                execution_result = 'FAILURE'
+
+                            if 'config_name' not in globals() and 'config_name' not in locals():
+                                config_name = ""
+
+                            if 'environment' not in globals() and 'environment' not in locals():
+                                environment = "dev"
+
+                            if 'container_name' not in globals() and 'container_name' not in locals():
+                                container_name = ""
+
+                            if 'resp' not in globals() and 'resp' not in locals():
+                                resp = requests.Response()
+                                resp.status_code = "500"
+
+                            if not hasattr(args, "app_name"):
+                                args.app_name = ""
+
+                            if 'settingObj' not in globals() and 'settingObj' not in locals():
+                                settingObj = Settings()
+
+                            if not hasattr(self, "identifier"):
+                                self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.app_name)
+
                             time_take_milliseonds = ((datetime.now() - function_execution_start_time).total_seconds() * 1000)
-                            input_metric = "roger-tools.roger_push_time," + "app_name=" + str(args.app_name) + ",container_name=" + str(container_name) + ",identifier=" + str(self.identifier) + ",outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
+                            input_metric = "roger-tools.rogeros_deployment," + "app_name=" + str(args.app_name) + ",event=push" + ",container_name=" + str(container_name) + ",identifier=" + str(self.identifier) + ",outcome=" + str(execution_result) + ",response_code=" + str(resp.status_code) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
                             sc.timing(input_metric, time_take_milliseonds)
                         except (Exception) as e:
                             print("The following error occurred: %s" %
                                   e, file=sys.stderr)
                             raise
 
-            hookname = "post_push"
-            hook_input_metric = "roger-tools." + hookname + "_time," + "app_name=" + str(args.app_name) + ",identifier=" + str(self.identifier) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
+            hookname = "post-push"
+            hook_input_metric = "roger-tools.rogeros_deployment," + "event=" + hookname + ",app_name=" + str(args.app_name) + ",identifier=" + str(self.identifier) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
             exit_code = hooksObj.run_hook(hookname, data, app_path, hook_input_metric)
             if exit_code != 0:
                 raise ValueError('{} hook failed.'.format(hookname))

@@ -53,8 +53,8 @@ class RogerGitPull(object):
         try:
             function_execution_start_time = datetime.now()
             execution_result = 'SUCCESS'  # Assume the execution_result to be SUCCESS unless exception occurs
-            environment = ""
-            if not hasattr(args, "environment"):
+            environment = "dev"
+            if hasattr(args, "environment"):
                 environment = args.environment
             settingObj = settings
             appObj = appConfig
@@ -86,11 +86,15 @@ class RogerGitPull(object):
                     if exception.errno != errno.EEXIST:
                         raise
 
+            if not hasattr(args, "app_name"):
+                args.app_name = ""
+
             if not hasattr(self, "identifier"):
                 self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.app_name)
 
-            hookname = "pre_gitpull"
-            hookname_input_metric = "roger-tools." + hookname + "_time," + "app_name=" + str(args.app_name) + ",identifier=" + str(self.identifier) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
+            args.app_name = self.utils.verify_app_name(args.app_name)
+            hookname = "pre-gitpull"
+            hookname_input_metric = "roger-tools.rogeros_deployment," + "event=" + hookname + ",app_name=" + str(args.app_name) + ",identifier=" + str(self.identifier) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
             exit_code = hooksObj.run_hook(hookname, data, args.directory, hookname_input_metric)
             if exit_code != 0:
                 raise ValueError('{} hook failed.'.format(hookname))
@@ -108,8 +112,8 @@ class RogerGitPull(object):
             if exit_code != 0:
                 raise ValueError('gitpull failed.')
 
-            hookname = "post_gitpull"
-            hookname_input_metric = "roger-tools." + hookname + "_time," + "app_name=" + str(args.app_name) + ",identifier=" + str(self.identifier) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
+            hookname = "post-gitpull"
+            hookname_input_metric = "roger-tools.rogeros_deployment," + "event=" + hookname + ",app_name=" + str(args.app_name) + ",identifier=" + str(self.identifier) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
             exit_code = hooksObj.run_hook(hookname, data, args.directory, hookname_input_metric)
             if exit_code != 0:
                 raise ValueError('{} hook failed.'.format(hookname))
@@ -121,31 +125,29 @@ class RogerGitPull(object):
         finally:
             try:
                 # If the gitpull fails before going through any steps
-                if 'function_execution_start_time' not in globals() or 'function_execution_start_time' not in locals():
+                if 'function_execution_start_time' not in globals() and 'function_execution_start_time' not in locals():
                     function_execution_start_time = datetime.now()
 
-                if 'execution_result' not in globals() or 'execution_result' not in locals():
+                if 'execution_result' not in globals() and 'execution_result' not in locals():
                     execution_result = 'FAILURE'
 
-                if 'config_name' not in globals() or 'config_name' not in locals():
+                if 'config_name' not in globals() and 'config_name' not in locals():
                     config_name = ""
 
-                if 'environment' not in globals() or 'environment' not in locals():
+                if 'environment' not in globals() and 'environment' not in locals():
                     environment = "dev"
 
-                if 'args' not in globals() or 'args' not in locals():
-                    args = argparse.ArgumentParser(description='Exception Handling.')
-                    args.add_argument('app_name', metavar='application', help="Exception Handling")
+                if not hasattr(args, "app_name"):
                     args.app_name = ""
 
-                if 'settingObj' not in globals() or 'settingObj' not in locals():
+                if 'settingObj' not in globals() and 'settingObj' not in locals():
                     settingObj = Settings()
 
                 sc = self.utils.getStatsClient()
                 if not hasattr(self, "identifier"):
                     self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.app_name)
                 time_take_milliseonds = ((datetime.now() - function_execution_start_time).total_seconds() * 1000)
-                input_metric = "roger-tools.roger_gitpull_time," + "app_name=" + str(args.app_name) + ",identifier=" + str(self.identifier) + ",outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
+                input_metric = "roger-tools.rogeros_deployment," + "app_name=" + str(args.app_name) + ",event=gitpull" + ",identifier=" + str(self.identifier) + ",outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
                 sc.timing(input_metric, time_take_milliseonds)
             except (Exception) as e:
                 print("The following error occurred: %s" %

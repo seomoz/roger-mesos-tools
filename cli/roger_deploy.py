@@ -312,27 +312,25 @@ class RogerDeploy(object):
             raise
         finally:
             # Check if the initializition of variables carried out
-            if 'function_execution_start_time' not in globals() or 'function_execution_start_time' not in locals():
+            if 'function_execution_start_time' not in globals() and 'function_execution_start_time' not in locals():
                 function_execution_start_time = datetime.now()
 
-            if 'execution_result' not in globals() or 'execution_result' not in locals():
+            if 'execution_result' not in globals() and 'execution_result' not in locals():
                 execution_result = 'FAILURE'
 
-            if 'config_name' not in globals() or 'config_name' not in locals():
+            if 'config_name' not in globals() and 'config_name' not in locals():
                 config_name = ""
 
-            if 'environment' not in globals() or 'environment' not in locals():
+            if 'environment' not in globals() and 'environment' not in locals():
                 environment = "dev"
 
-            if 'args' not in globals() or 'args' not in locals():
-                args = argparse.ArgumentParser(description='Exception Handling.')
-                args.add_argument('application', metavar='application', help="Exception Handling")
+            if not hasattr(args, "application"):
                 args.application = ""
 
-            if 'settingObj' not in globals() or 'settingObj' not in locals():
+            if 'settingObj' not in globals() and 'settingObj' not in locals():
                 settingObj = Settings()
 
-            if 'work_dir' not in globals() or 'work_dir' not in locals():
+            if 'work_dir' not in globals() and 'work_dir' not in locals():
                 work_dir = ''
                 temp_dir_created = False
 
@@ -341,8 +339,9 @@ class RogerDeploy(object):
                 sc = self.utils.getStatsClient()
                 if not hasattr(self, "identifier"):
                     self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.application)
+                args.application = self.utils.verify_app_name(args.application)
                 time_take_milliseonds = ((datetime.now() - function_execution_start_time).total_seconds() * 1000)
-                input_metric = "roger-tools.roger_deploy_time," + "app_name=" + str(args.application) + ",outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser()) + ",identifier=" + str(self.identifier)
+                input_metric = "roger-tools.rogeros_deployment," + "app_name=" + str(args.application) + ",event=deploy" + ",outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser()) + ",identifier=" + str(self.identifier)
                 sc.timing(input_metric, time_take_milliseonds)
                 self.removeDirTree(work_dir, args, temp_dir_created)
             except (Exception) as e:

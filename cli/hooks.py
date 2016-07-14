@@ -42,9 +42,9 @@ class Hooks:
             raise
         finally:
             try:
-                if 'execution_result' not in globals() or 'execution_result' not in locals():
+                if 'execution_result' not in globals() and 'execution_result' not in locals():
                     execution_result = 'FAILURE'
-                if 'function_execution_start_time' not in globals() or 'function_execution_start_time' not in locals():
+                if 'function_execution_start_time' not in globals() and 'function_execution_start_time' not in locals():
                     function_execution_start_time = datetime.now()
                 sc = self.utils.getStatsClient()
                 time_take_milliseonds = ((datetime.now() - function_execution_start_time).total_seconds() * 1000)
