@@ -123,6 +123,7 @@ class RogerDeploy(object):
         self.dockerObject = Docker()
         self.utils = Utils()
         self.slack = None
+        self.statsd_message_list = []
 
         # To remove a temporary directory created by roger-deploy if this
         # script exits
@@ -340,8 +341,9 @@ class RogerDeploy(object):
                     self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.application)
                 args.application = self.utils.extract_app_name(args.application)
                 time_take_milliseonds = ((datetime.now() - function_execution_start_time).total_seconds() * 1000)
-                input_metric = "roger-tools.rogeros_deployment," + "app_name=" + str(args.application) + ",event=deploy" + ",outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser()) + ",identifier=" + str(self.identifier)
-                sc.timing(input_metric, time_take_milliseonds)
+                input_metric = "roger-tools.rogeros_tools_exec_time," + "app_name=" + str(args.application) + ",event=deploy" + ",outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser()) + ",identifier=" + str(self.identifier)
+                tup = (input_metric, time_take_milliseonds)
+                self.statsd_message_list.append(tup)
                 self.removeDirTree(work_dir, args, temp_dir_created)
             except (Exception) as e:
                 print("The following error occurred: %s" %
@@ -377,6 +379,7 @@ class RogerDeploy(object):
         if not skip_gitpull:
             args.app_name = app
             args.directory = work_dir
+            self.rogerGitPullObject.statsd_message_list = self.statsd_message_list
             self.rogerGitPullObject.identifier = self.identifier
             self.rogerGitPullObject.main(settingObj, appObj, gitObj, hooksObj, args)
 
@@ -425,6 +428,7 @@ class RogerDeploy(object):
             build_args.push = True
             try:
                 self.rogerBuildObject.identifier = self.identifier
+                self.rogerBuildObject.statsd_message_list = self.statsd_message_list
                 self.rogerBuildObject.main(settingObj, appObject, hooksObj,
                                            self.dockerUtilsObject, self.dockerObject, build_args)
             except ValueError:
@@ -441,6 +445,7 @@ class RogerDeploy(object):
         else:
             args.app_name = app
         self.rogerPushObject.identifier = self.identifier
+        self.rogerPushObject.statsd_message_list = self.statsd_message_list
         self.rogerPushObject.main(settingObj, appObj, frameworkUtils,
                                   hooksObj, args)
 
@@ -466,3 +471,11 @@ if __name__ == "__main__":
     args = roger_deploy.parser.parse_args()
     roger_deploy.main(settingObj, appObj, frameworkUtils,
                       gitObj, hooksObj, args)
+    statsd_message_list = roger_deploy.utils.append_task_id(roger_deploy.statsd_message_list, roger_deploy.rogerPushObject.task_id)
+    try:
+        sc = roger_deploy.utils.getStatsClient()
+        for item in statsd_message_list:
+            sc.timing(item[0], item[1])
+    except (Exception) as e:
+        print("The following error occurred: %s" %
+              e, file=sys.stderr)

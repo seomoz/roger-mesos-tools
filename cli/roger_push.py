@@ -42,6 +42,8 @@ class RogerPush(object):
 
     def __init__(self):
         self.utils = Utils()
+        self.task_id = ""
+        self.statsd_message_list = []
 
     def parse_args(self):
         self.parser = argparse.ArgumentParser(
@@ -150,6 +152,10 @@ class RogerPush(object):
         variables.update(additional_vars)
 
         return template.render(variables)
+
+    def statsd_gauge_logging(self, metric):
+        sc = self.utils.getStatsClient()
+        sc.gauge(metric, 1)
 
     def repo_relative_path(self, appConfig, args, repo, path):
         '''Returns a path relative to the repo, assumed to be under [args.directory]/[repo name]'''
@@ -271,8 +277,9 @@ class RogerPush(object):
                 self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.app_name)
 
             args.app_name = self.utils.extract_app_name(args.app_name)
+            hooksObj.statsd_message_list = self.statsd_message_list
             hookname = "pre_push"
-            hook_input_metric = "roger-tools.rogeros_deployment," + "event=" + hookname + ",app_name=" + str(args.app_name) + ",identifier=" + str(self.identifier) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
+            hook_input_metric = "roger-tools.rogeros_tools_exec_time," + "event=" + hookname + ",app_name=" + str(args.app_name) + ",identifier=" + str(self.identifier) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
             exit_code = hooksObj.run_hook(hookname, data, app_path, hook_input_metric)
             if exit_code != 0:
                 raise ValueError('{} hook failed.'.format(hookname))
@@ -382,8 +389,10 @@ class RogerPush(object):
                                 config_file_path, environment)
 
                             if args.force_push or result is True:
-                                resp = frameworkObj.put(
+                                resp, task_id = frameworkObj.put(
                                     config_file_path, environmentObj, container_name, environment)
+
+                                self.task_id = task_id
 
                                 if hasattr(resp, "status_code"):
                                     status_code = resp.status_code
@@ -426,15 +435,23 @@ class RogerPush(object):
                                 self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.app_name)
 
                             time_take_milliseonds = ((datetime.now() - function_execution_start_time).total_seconds() * 1000)
-                            input_metric = "roger-tools.rogeros_deployment," + "app_name=" + str(args.app_name) + ",event=push" + ",container_name=" + str(container_name) + ",identifier=" + str(self.identifier) + ",outcome=" + str(execution_result) + ",response_code=" + str(status_code) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
-                            sc.timing(input_metric, time_take_milliseonds)
+                            input_metric = "roger-tools.rogeros_tools_exec_time," + "app_name=" + str(args.app_name) + ",event=push" + ",container_name=" + str(container_name) + ",identifier=" + str(self.identifier) + ",outcome=" + str(execution_result) + ",response_code=" + str(status_code) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
+                            tup = (input_metric, time_take_milliseonds)
+                            self.statsd_message_list.append(tup)
+
+                            if str(status_code).startswith("20"):
+                                metric = input_metric.replace("rogeros_tools_exec_time", "rogeros_events")
+                                metric = metric + ",source=TOOLS" + ",task_id=" + self.task_id
+                                self.statsd_gauge_logging(metric)
+
                         except (Exception) as e:
                             print("The following error occurred: %s" %
                                   e, file=sys.stderr)
                             raise
 
+            hooksObj.statsd_message_list = self.statsd_message_list
             hookname = "post_push"
-            hook_input_metric = "roger-tools.rogeros_deployment," + "event=" + hookname + ",app_name=" + str(args.app_name) + ",identifier=" + str(self.identifier) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
+            hook_input_metric = "roger-tools.rogeros_tools_exec_time," + "event=" + hookname + ",app_name=" + str(args.app_name) + ",identifier=" + str(self.identifier) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
             exit_code = hooksObj.run_hook(hookname, data, app_path, hook_input_metric)
             if exit_code != 0:
                 raise ValueError('{} hook failed.'.format(hookname))
@@ -454,3 +471,11 @@ if __name__ == "__main__":
     roger_push.args = roger_push.parser.parse_args()
     roger_push.main(settingObj, appObj, frameworkUtils,
                     hooksObj, roger_push.args)
+    statsd_message_list = roger_push.utils.append_task_id(self.statsd_message_list, roger_push.task_id)
+    try:
+        sc = roger_push.utils.getStatsClient()
+        for item in statsd_message_list:
+            sc.timing(item[0], item[1])
+    except (Exception) as e:
+        print("The following error occurred: %s" %
+              e, file=sys.stderr)

@@ -6,11 +6,16 @@ import sys
 import statsd
 from cli.settings import Settings
 from cli.appconfig import AppConfig
+from copy import deepcopy
 import hashlib
 import time
+import json
 
 
 class Utils:
+
+    def __init__(self):
+        self.task_id_value = None
 
     # Expected format:
     #   moz-content-kairos-7da406eb9e8937875e0548ae1149/v0.46
@@ -55,4 +60,15 @@ class Utils:
     def extract_app_name(self, value):
         if ':' in value:
             return value.split(":")[0]
+        if '[' in value:
+            return value.split("[")[0]
         return value
+
+    def append_task_id(self, statsd_message_list, task_id):
+        modified_message_list = []
+        for item in statsd_message_list:
+            tup = (item[0] + ",task_id=" + task_id, item[1])
+            modified_message_list.append(tup)
+        statsd_message_list = []
+        statsd_message_list = deepcopy(modified_message_list)
+        return statsd_message_list

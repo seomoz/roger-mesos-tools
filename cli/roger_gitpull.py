@@ -35,6 +35,7 @@ class RogerGitPull(object):
 
     def __init__(self):
         self.utils = Utils()
+        self.statsd_message_list = []
 
     def parse_args(self):
         self.parser = argparse.ArgumentParser(
@@ -93,8 +94,10 @@ class RogerGitPull(object):
                 self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.app_name)
 
             args.app_name = self.utils.extract_app_name(args.app_name)
+
+            hooksObj.statsd_message_list = self.statsd_message_list
             hookname = "pre_gitpull"
-            hookname_input_metric = "roger-tools.rogeros_deployment," + "event=" + hookname + ",app_name=" + str(args.app_name) + ",identifier=" + str(self.identifier) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
+            hookname_input_metric = "roger-tools.rogeros_tools_exec_time," + "event=" + hookname + ",app_name=" + str(args.app_name) + ",identifier=" + str(self.identifier) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
             exit_code = hooksObj.run_hook(hookname, data, args.directory, hookname_input_metric)
             if exit_code != 0:
                 raise ValueError('{} hook failed.'.format(hookname))
@@ -112,8 +115,9 @@ class RogerGitPull(object):
             if exit_code != 0:
                 raise ValueError('gitpull failed.')
 
+            hooksObj.statsd_message_list = self.statsd_message_list
             hookname = "post_gitpull"
-            hookname_input_metric = "roger-tools.rogeros_deployment," + "event=" + hookname + ",app_name=" + str(args.app_name) + ",identifier=" + str(self.identifier) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
+            hookname_input_metric = "roger-tools.rogeros_tools_exec_time," + "event=" + hookname + ",app_name=" + str(args.app_name) + ",identifier=" + str(self.identifier) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
             exit_code = hooksObj.run_hook(hookname, data, args.directory, hookname_input_metric)
             if exit_code != 0:
                 raise ValueError('{} hook failed.'.format(hookname))
@@ -147,8 +151,9 @@ class RogerGitPull(object):
                 if not hasattr(self, "identifier"):
                     self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.app_name)
                 time_take_milliseonds = ((datetime.now() - function_execution_start_time).total_seconds() * 1000)
-                input_metric = "roger-tools.rogeros_deployment," + "app_name=" + str(args.app_name) + ",event=gitpull" + ",identifier=" + str(self.identifier) + ",outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
-                sc.timing(input_metric, time_take_milliseonds)
+                input_metric = "roger-tools.rogeros_tools_exec_time," + "app_name=" + str(args.app_name) + ",event=gitpull" + ",identifier=" + str(self.identifier) + ",outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
+                tup = (input_metric, time_take_milliseonds)
+                self.statsd_message_list.append(tup)
             except (Exception) as e:
                 print("The following error occurred: %s" %
                       e, file=sys.stderr)
@@ -163,3 +168,10 @@ if __name__ == "__main__":
     roger_gitpull.parser = roger_gitpull.parse_args()
     args = roger_gitpull.parser.parse_args()
     roger_gitpull.main(settingObj, appObj, gitObj, hooksObj, args)
+    try:
+        sc = roger_gitpull.utils.getStatsClient()
+        for item in self.statsd_message_list:
+            sc.timing(item[0], item[1])
+    except (Exception) as e:
+        print("The following error occurred: %s" %
+              e, file=sys.stderr)
