@@ -471,7 +471,7 @@ if __name__ == "__main__":
     roger_push.args = roger_push.parser.parse_args()
     roger_push.main(settingObj, appObj, frameworkUtils,
                     hooksObj, roger_push.args)
-    statsd_message_list = roger_push.utils.append_task_id(self.statsd_message_list, roger_push.task_id)
+    statsd_message_list = roger_push.utils.append_task_id(roger_push.statsd_message_list, roger_push.task_id)
     try:
         sc = roger_push.utils.getStatsClient()
         for item in statsd_message_list:
