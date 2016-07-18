@@ -36,6 +36,7 @@ class RogerGitPull(object):
     def __init__(self):
         self.utils = Utils()
         self.statsd_message_list = []
+        self.outcome = 1
 
     def parse_args(self):
         self.parser = argparse.ArgumentParser(
@@ -146,6 +147,9 @@ class RogerGitPull(object):
 
                 if 'settingObj' not in globals() and 'settingObj' not in locals():
                     settingObj = Settings()
+
+                if 'execution_result' is 'FAILURE':
+                    self.outcome = 0
 
                 sc = self.utils.getStatsClient()
                 if not hasattr(self, "identifier"):

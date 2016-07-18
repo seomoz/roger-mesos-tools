@@ -44,6 +44,7 @@ class RogerPush(object):
         self.utils = Utils()
         self.task_id = ""
         self.statsd_message_list = []
+        self.outcome = 1
 
     def parse_args(self):
         self.parser = argparse.ArgumentParser(
@@ -153,9 +154,9 @@ class RogerPush(object):
 
         return template.render(variables)
 
-    def statsd_gauge_logging(self, metric):
+    def statsd_counter_logging(self, metric):
         sc = self.utils.getStatsClient()
-        sc.gauge(metric, 1)
+        sc.incr(metric, 1)
 
     def repo_relative_path(self, appConfig, args, repo, path):
         '''Returns a path relative to the repo, assumed to be under [args.directory]/[repo name]'''
@@ -434,6 +435,10 @@ class RogerPush(object):
                             if not hasattr(self, "identifier"):
                                 self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.app_name)
 
+                            if not str(status_code).startswith("20"):
+                                execution_result = 'FAILURE'
+                                self.outcome = 0
+
                             time_take_milliseonds = ((datetime.now() - function_execution_start_time).total_seconds() * 1000)
                             input_metric = "roger-tools.rogeros_tools_exec_time," + "app_name=" + str(args.app_name) + ",event=push" + ",container_name=" + str(container_name) + ",identifier=" + str(self.identifier) + ",outcome=" + str(execution_result) + ",response_code=" + str(status_code) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser())
                             tup = (input_metric, time_take_milliseonds)
@@ -442,7 +447,7 @@ class RogerPush(object):
                             if str(status_code).startswith("20"):
                                 metric = input_metric.replace("rogeros_tools_exec_time", "rogeros_events")
                                 metric = metric + ",source=TOOLS" + ",task_id=" + self.task_id
-                                self.statsd_gauge_logging(metric)
+                                self.statsd_counter_logging(metric)
 
                         except (Exception) as e:
                             print("The following error occurred: %s" %

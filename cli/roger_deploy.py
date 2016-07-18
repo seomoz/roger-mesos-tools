@@ -334,6 +334,9 @@ class RogerDeploy(object):
                 work_dir = ''
                 temp_dir_created = False
 
+            if not (self.rogerGitPullObject.outcome is 1 and self.rogerBuildObject.outcome is 1 and self.rogerPushObject.outcome is 1):
+                execution_result = 'FAILURE'
+
             try:
                 # If the deploy fails before going through any steps
                 sc = self.utils.getStatsClient()
