@@ -1,6 +1,4 @@
-![Build Status](https://api.travis-ci.org/seomoz/roger-mesos-tools.svg?branch=master)
-
-# roger-mesos-tools
+# roger-mesos-tools ![Build Status](https://api.travis-ci.org/seomoz/roger-mesos-tools.svg?branch=master)
 
 Tools to connect to and work with [RogerOS](https://github.com/seomoz/roger-mesos), Moz's cluster OS based on mesos.
 
