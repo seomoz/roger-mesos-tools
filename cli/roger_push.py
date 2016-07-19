@@ -446,7 +446,7 @@ class RogerPush(object):
 
                             if str(status_code).startswith("20"):
                                 metric = input_metric.replace("rogeros_tools_exec_time", "rogeros_events")
-                                metric = metric + ",source=TOOLS" + ",task_id=" + self.task_id
+                                metric = metric + ",source=tools" + ",task_id=" + self.task_id
                                 self.statsd_counter_logging(metric)
 
                         except (Exception) as e:
