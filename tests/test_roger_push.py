@@ -149,6 +149,7 @@ class TestPush(unittest.TestCase):
         when(sc).timing(any(), any()).thenReturn(any())
         when(roger_push.utils).getStatsClient().thenReturn(sc)
         when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
+        when(roger_push.utils).extract_app_name(any()).thenReturn("test")
         when(marathon).put(any(), any(), any()).thenReturn("Response [200]")
         frameworkUtils = mock(FrameworkUtils)
         when(frameworkUtils).getFramework(data).thenReturn(marathon)
@@ -201,6 +202,7 @@ class TestPush(unittest.TestCase):
         when(sc).timing(any(), any()).thenReturn(any())
         when(roger_push.utils).getStatsClient().thenReturn(sc)
         when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
+        when(roger_push.utils).extract_app_name(any()).thenReturn("test")
         when(marathon).getName().thenReturn('Marathon')
         when(marathon).put(any(), any(), any()).thenReturn("Response [200]")
         when(marathon).put(any(), any(), any()).thenReturn("Response [200]")
@@ -265,6 +267,7 @@ class TestPush(unittest.TestCase):
         when(sc).timing(any(), any()).thenReturn(any())
         when(roger_push.utils).getStatsClient().thenReturn(sc)
         when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
+        when(roger_push.utils).extract_app_name(any()).thenReturn("test")
         when(marathon).put(any(), any(), any()).thenReturn("Response [200]")
         frameworkUtils = mock(FrameworkUtils)
         when(frameworkUtils).getFramework(data).thenReturn(marathon)
@@ -396,6 +399,7 @@ class TestPush(unittest.TestCase):
         when(sc).timing(any(), any()).thenReturn(any())
         when(roger_push.utils).getStatsClient().thenReturn(sc)
         when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
+        when(roger_push.utils).extract_app_name(any()).thenReturn("test")
 
         frameworkUtils = mock(FrameworkUtils)
         when(frameworkUtils).getFramework(data).thenReturn(marathon)
@@ -445,6 +449,7 @@ class TestPush(unittest.TestCase):
         when(sc).timing(any(), any()).thenReturn(any())
         when(roger_push.utils).getStatsClient().thenReturn(sc)
         when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
+        when(roger_push.utils).extract_app_name(any()).thenReturn("test")
 
         when(frameworkUtils).getFramework(any()).thenReturn(marathon)
         when(marathon).getName().thenReturn('Marathon')
@@ -492,6 +497,7 @@ class TestPush(unittest.TestCase):
         when(sc).timing(any(), any()).thenReturn(any())
         when(roger_push.utils).getStatsClient().thenReturn(sc)
         when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
+        when(roger_push.utils).extract_app_name(any()).thenReturn("test")
 
         when(frameworkUtils).getFramework(any()).thenReturn(marathon)
         when(marathon).getName().thenReturn('Marathon')
@@ -565,6 +571,7 @@ class TestPush(unittest.TestCase):
         when(sc).timing(any(), any()).thenReturn(any())
         when(roger_push.utils).getStatsClient().thenReturn(sc)
         when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
+        when(roger_push.utils).extract_app_name(any()).thenReturn("test")
 
         frameworkUtils = mock(FrameworkUtils)
         when(marathon).getName().thenReturn('Marathon')
@@ -601,6 +608,7 @@ class TestPush(unittest.TestCase):
         when(sc).timing(any(), any()).thenReturn(any())
         when(roger_push.utils).getStatsClient().thenReturn(sc)
         when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
+        when(roger_push.utils).extract_app_name(any()).thenReturn("test")
         when(frameworkUtils).getFramework(any()).thenReturn(marathon)
         when(marathon).getName().thenReturn('Marathon')
         when(settings).getComponentsDir().thenReturn(
@@ -676,7 +684,7 @@ class TestPush(unittest.TestCase):
         data = self.data
         when(marathon).getName().thenReturn('Marathon')
         when(marathon).put(any(), any(), any(),
-                           any()).thenReturn("Response [200]")
+                           any()).thenReturn(["Response [200]", any()])
         when(marathon).runDeploymentChecks(any(), any()).thenReturn(True)
         frameworkUtils = mock(FrameworkUtils)
         frameworkUtils = mock(FrameworkUtils)
@@ -685,6 +693,7 @@ class TestPush(unittest.TestCase):
         when(sc).timing(any(), any()).thenReturn(any())
         when(roger_push.utils).getStatsClient().thenReturn(sc)
         when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
+        when(roger_push.utils).extract_app_name(any()).thenReturn("test")
 
         when(frameworkUtils).getFramework(data).thenReturn(marathon)
         when(settings).getComponentsDir().thenReturn(
@@ -727,8 +736,9 @@ class TestPush(unittest.TestCase):
         when(sc).timing(any(), any()).thenReturn(any())
         when(roger_push.utils).getStatsClient().thenReturn(sc)
         when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
+        when(roger_push.utils).extract_app_name(any()).thenReturn("test")
 
-        when(marathon).put(any(), any(), any()).thenReturn("Response [200]")
+        when(marathon).put(any(), any(), any()).thenReturn(["Response [200]", any()])
         frameworkUtils = mock(FrameworkUtils)
         when(frameworkUtils).getFramework(data).thenReturn(marathon)
         when(marathon).getName().thenReturn('Marathon')
@@ -774,12 +784,13 @@ class TestPush(unittest.TestCase):
         when(sc).timing(any(), any()).thenReturn(any())
         when(roger_push.utils).getStatsClient().thenReturn(sc)
         when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
+        when(roger_push.utils).extract_app_name(any()).thenReturn("test")
 
         frameworkUtils = mock(FrameworkUtils)
         when(frameworkUtils).getFramework(data).thenReturn(marathon)
         when(marathon).getName().thenReturn('Marathon')
         when(marathon).put(any(), any(), any(),
-                           any()).thenReturn("Response [200]")
+                           any()).thenReturn(["Response [200]", any()])
         when(marathon).runDeploymentChecks(any(), any()).thenReturn(True)
         when(settings).getComponentsDir().thenReturn(
             self.base_dir + "/tests/components")
@@ -823,6 +834,7 @@ class TestPush(unittest.TestCase):
         when(sc).timing(any(), any()).thenReturn(any())
         when(roger_push.utils).getStatsClient().thenReturn(sc)
         when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
+        when(roger_push.utils).extract_app_name(any()).thenReturn("test")
 
         when(marathon).put(any(), any(), any()).thenReturn("Response [200]")
         frameworkUtils = mock(FrameworkUtils)

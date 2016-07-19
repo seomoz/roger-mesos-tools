@@ -123,6 +123,7 @@ class RogerDeploy(object):
         self.dockerObject = Docker()
         self.utils = Utils()
         self.slack = None
+        self.statsd_message_list = []
 
         # To remove a temporary directory created by roger-deploy if this
         # script exits
@@ -311,38 +312,41 @@ class RogerDeploy(object):
             raise
         finally:
             # Check if the initializition of variables carried out
-            if 'function_execution_start_time' not in globals() or 'function_execution_start_time' not in locals():
+            if 'function_execution_start_time' not in globals() and 'function_execution_start_time' not in locals():
                 function_execution_start_time = datetime.now()
 
-            if 'execution_result' not in globals() or 'execution_result' not in locals():
+            if 'execution_result' not in globals() and 'execution_result' not in locals():
                 execution_result = 'FAILURE'
 
-            if 'config_name' not in globals() or 'config_name' not in locals():
+            if 'config_name' not in globals() and 'config_name' not in locals():
                 config_name = ""
 
-            if 'environment' not in globals() or 'environment' not in locals():
+            if 'environment' not in globals() and 'environment' not in locals():
                 environment = "dev"
 
-            if 'args' not in globals() or 'args' not in locals():
-                args = argparse.ArgumentParser(description='Exception Handling.')
-                args.add_argument('application', metavar='application', help="Exception Handling")
+            if not hasattr(args, "application"):
                 args.application = ""
 
-            if 'settingObj' not in globals() or 'settingObj' not in locals():
+            if 'settingObj' not in globals() and 'settingObj' not in locals():
                 settingObj = Settings()
 
-            if 'work_dir' not in globals() or 'work_dir' not in locals():
+            if 'work_dir' not in globals() and 'work_dir' not in locals():
                 work_dir = ''
                 temp_dir_created = False
+
+            if not (self.rogerGitPullObject.outcome is 1 and self.rogerBuildObject.outcome is 1 and self.rogerPushObject.outcome is 1):
+                execution_result = 'FAILURE'
 
             try:
                 # If the deploy fails before going through any steps
                 sc = self.utils.getStatsClient()
                 if not hasattr(self, "identifier"):
                     self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.application)
+                args.application = self.utils.extract_app_name(args.application)
                 time_take_milliseonds = ((datetime.now() - function_execution_start_time).total_seconds() * 1000)
-                input_metric = "roger-tools.roger_deploy_time," + "app_name=" + str(args.application) + ",outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser()) + ",identifier=" + str(self.identifier)
-                sc.timing(input_metric, time_take_milliseonds)
+                input_metric = "roger-tools.rogeros_tools_exec_time," + "app_name=" + str(args.application) + ",event=deploy" + ",outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser()) + ",identifier=" + str(self.identifier)
+                tup = (input_metric, time_take_milliseonds)
+                self.statsd_message_list.append(tup)
                 self.removeDirTree(work_dir, args, temp_dir_created)
             except (Exception) as e:
                 print("The following error occurred: %s" %
@@ -378,6 +382,7 @@ class RogerDeploy(object):
         if not skip_gitpull:
             args.app_name = app
             args.directory = work_dir
+            self.rogerGitPullObject.statsd_message_list = self.statsd_message_list
             self.rogerGitPullObject.identifier = self.identifier
             self.rogerGitPullObject.main(settingObj, appObj, gitObj, hooksObj, args)
 
@@ -426,6 +431,7 @@ class RogerDeploy(object):
             build_args.push = True
             try:
                 self.rogerBuildObject.identifier = self.identifier
+                self.rogerBuildObject.statsd_message_list = self.statsd_message_list
                 self.rogerBuildObject.main(settingObj, appObject, hooksObj,
                                            self.dockerUtilsObject, self.dockerObject, build_args)
             except ValueError:
@@ -442,6 +448,7 @@ class RogerDeploy(object):
         else:
             args.app_name = app
         self.rogerPushObject.identifier = self.identifier
+        self.rogerPushObject.statsd_message_list = self.statsd_message_list
         self.rogerPushObject.main(settingObj, appObj, frameworkUtils,
                                   hooksObj, args)
 
@@ -467,3 +474,11 @@ if __name__ == "__main__":
     args = roger_deploy.parser.parse_args()
     roger_deploy.main(settingObj, appObj, frameworkUtils,
                       gitObj, hooksObj, args)
+    statsd_message_list = roger_deploy.utils.append_task_id(roger_deploy.statsd_message_list, roger_deploy.rogerPushObject.task_id)
+    try:
+        sc = roger_deploy.utils.getStatsClient()
+        for item in statsd_message_list:
+            sc.timing(item[0], item[1])
+    except (Exception) as e:
+        print("The following error occurred: %s" %
+              e, file=sys.stderr)
