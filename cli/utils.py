@@ -72,3 +72,9 @@ class Utils:
         statsd_message_list = []
         statsd_message_list = deepcopy(modified_message_list)
         return statsd_message_list
+
+    def modify_task_id(self, task_id):
+        if task_id[0] == '/':
+            task_id = task_id[1:]
+        task_id = task_id.replace("/", "_")
+        return task_id

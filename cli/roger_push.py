@@ -393,7 +393,7 @@ class RogerPush(object):
                                 resp, task_id = frameworkObj.put(
                                     config_file_path, environmentObj, container_name, environment)
 
-                                self.task_id = task_id
+                                self.task_id = self.utils.modify_task_id(task_id)
 
                                 if hasattr(resp, "status_code"):
                                     status_code = resp.status_code
