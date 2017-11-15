@@ -193,8 +193,11 @@ class RogerDeploy(object):
                                  help="increment patch in version. Defaults to false.'")
         self.parser.add_argument('-S', '--secrets-file',
                                  help="specifies an optional secrets file for deployment runtime variables.")
+        # (vmahedia) todo Changing this name is slightly more complicated, so making it more verbose for now
         self.parser.add_argument('-d', '--directory',
-                                 help="working directory. Uses a temporary directory if not specified.")
+                                 help="App Repo will be checked out here, this is the working dir CLI will use."
+                                      "A temporary directory is created if no directory specified."
+                                      "Example: '/home/vagrant/work_dir'.")
         self.parser.add_argument('application', metavar='application', help="application to deploy. \
                                  Can also push specific containers(comma seperated). Example: 'all' \
                                  or 'app1:app2' or 'kairos' or 'app_name[container1,container2]' \

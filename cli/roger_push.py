@@ -56,19 +56,27 @@ class RogerPush(object):
     def parse_args(self):
         self.parser = argparse.ArgumentParser(
             prog='roger push', description=describe())
-        self.parser.add_argument('app_name', metavar='app_name', help="application to push. Can also push specific"
-                                 " containers(comma seperated). Example: 'agora' or 'app_name:container1,container2'")
+        self.parser.add_argument('app_name', metavar='app_name',
+                                 help="Name of the App to be pushed, as defined in config file."
+                                      "To deploy specific containers from an App, look at example B"
+                                      "Example: A. 'agora' B. 'app_name:container1,container2'")
         self.parser.add_argument('-e', '--env', metavar='env',
-                                 help="environment to push to. Example: 'dev' or 'prod'")
-        self.parser.add_argument('-v', '--verbose', help="verbose mode for debugging", action="store_true")
+                                 help="Environment to push to. Example: 'dev' or 'prod'")
+        self.parser.add_argument('-v', '--verbose', help="Verbose mode", action="store_false")
+        # Changelog: todo - Change this to checkout_dir but it's complicated to make thsi change in other commands
+        # so for now, leaving it as it is and will have to take care of this in one change.
         self.parser.add_argument('directory', metavar='directory',
-                                 help="working directory. Example: '/home/vagrant/work_dir'")
+                                 help="App Repo will be checked out here, this is the working dir CLI will use."
+                                      "Example: '/home/vagrant/work_dir'")
         self.parser.add_argument('image_name', metavar='image_name',
-                                 help="image name that includes version to use. Example: 'roger-collectd-v0.20' or 'elasticsearch-v0.07'")
+                                 help="image name that includes version to use."
+                                      "Example: 'roger-collectd-v0.20' or 'elasticsearch-v0.07'")
         self.parser.add_argument('config_file', metavar='config_file',
-                                 help="configuration file to use. Example: 'content.json' or 'kwe.json'")
-        self.parser.add_argument(
-            '--skip-push', '-s', help="skips push. Only generates components for review. Defaults to false.", action="store_true")
+                                 help="Configuration file to use."
+                                      "Example: A. 'local.yml' or B.'content.json'")
+        self.parser.add_argument('--skip-push', '-s', help="App is not pushed. Only renders template with config."
+                                                           "Use it to check generated file before deploying or to debug"
+                                                           "Defaults to false.", action="store_true")
         self.parser.add_argument(
             '--force-push', '-f', help="force push. Not Recommended. Forces push even if validation checks failed. Defaults to false.", action="store_true")
         self.parser.add_argument('--secrets-file', '-S',
@@ -303,8 +311,7 @@ class RogerPush(object):
             if 'extra_variables_path' in data:
                 ev_path = self.repo_relative_path(appObj, args, repo, data['extra_variables_path'])
                 with open(ev_path) as f:
-                    extra_vars = yaml.load(f) if ev_path.lower(
-                    ).endswith('.yml') else json.load(f)
+                    extra_vars = yaml.load(f) if ev_path.lower().endswith('.yml') else json.load(f)
 
             if not app_path.endswith('/'):
                 app_path = app_path + '/'

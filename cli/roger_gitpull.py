@@ -46,7 +46,9 @@ class RogerGitPull(object):
         self.parser.add_argument('app_name', metavar='app_name',
                                  help="application for which code is to be pulled. Example: 'agora' or 'grafana'")
         self.parser.add_argument('directory', metavar='directory',
-                                 help="working directory. The repo has its own directory it this. Example: '/home/vagrant/work_dir'")
+                                  help="App Repo will be checked out here, this is the working dir CLI will use."
+                                       "A temporary directory is created if no directory specified."
+                                       "Example: '/home/vagrant/work_dir'.")
         self.parser.add_argument('-v', '--verbose', help="verbose mode for debugging", action="store_true")
         self.parser.add_argument('-b', '--branch', metavar='branch',
                                  help="git branch to pull code from. Example: 'production' or 'master'. Defaults to master.")
