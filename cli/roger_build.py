@@ -50,7 +50,9 @@ class RogerBuild(object):
         self.parser.add_argument('app_name', metavar='app_name',
                                  help="application to build. Example: 'agora'.")
         self.parser.add_argument('directory', metavar='directory',
-                                 help="working directory. Example: '/home/vagrant/work_dir'.")
+                                 help="App Repo will be checked out here, this is the working dir CLI will use."
+                                      "A temporary directory is created if no directory specified."
+                                      "Example: '/home/vagrant/work_dir'.")
         self.parser.add_argument('tag_name', metavar='tag_name',
                                  help="tag for the built image. Example: 'roger-collectd:0.20'.")
         self.parser.add_argument('config_file', metavar='config_file',
