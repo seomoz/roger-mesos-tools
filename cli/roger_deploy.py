@@ -513,6 +513,12 @@ if __name__ == "__main__":
     roger_deploy = RogerDeploy()
     roger_deploy.parser = roger_deploy.parseArgs()
     args = roger_deploy.parser.parse_args()
+    if args.skip_gitpull and not args.directory:
+        printErrorMsg("Define 'directory' arg, dir where app repo is checked out, needed to deploy "
+                      "or remove skip_gitpull flag, in which case a tmp dir will be created to "
+                      "checkout the app repo and app will be built and deployed from repo under tmp dir.")
+        sys.exit(-1)
+
     gitObj = GitUtils()
     # appropriate exception will be thrown if config file is not found, no point of catching it
     # since we can't do anything about it except print an error message which exception already has
