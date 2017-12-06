@@ -569,7 +569,10 @@ if __name__ == "__main__":
         image_tag_value = urllib.quote("'" + image_name + "'")
 
         for task_id_value in roger_push.task_id:
-            statsd_message_list = roger_push.utils.append_arguments(roger_push.statsd_message_list, task_id=task_id_value, tools_version=tools_version_value, image_tag=image_tag_value)
+            statsd_message_list = roger_push.utils.append_arguments(roger_push.statsd_message_list,
+                                                                    task_id=task_id_value,
+                                                                    tools_version=tools_version_value,
+                                                                    image_tag=image_tag_value)
             result_list.append(statsd_message_list)
 
         sc = roger_push.utils.getStatsClient()
