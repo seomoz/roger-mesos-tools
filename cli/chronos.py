@@ -43,11 +43,15 @@ class Chronos(Framework):
         deploy_url = "{}/{}".format(endpoint, chronos_resource)
 
         if not act_as_user:
-            resp = requests.put(deploy_url, data=data, headers={
-                                'Content-type': 'application/json'}, auth=(self.user, self.passw))
+            resp = requests.put(deploy_url, data=data,
+                                headers={'Content-type': 'application/json'},
+                                auth=(self.user, self.passw),
+                                allow_redirect=True)
         else:
-            resp = requests.put(deploy_url, data=data, headers={
-                                'Content-type': 'application/json', 'act-as-user': act_as_user}, auth=(self.user, self.passw))
+            resp = requests.put(deploy_url, data=data,
+                                headers={'Content-type': 'application/json', 'act-as-user': act_as_user},
+                                auth=(self.user, self.passw),
+                                allow_redirect=True)
         chronos_message = "{}".format(resp)
         print(colored(chronos_message, "yellow"))
         task_id = []

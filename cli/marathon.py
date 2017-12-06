@@ -54,11 +54,15 @@ class Marathon(Framework):
             if not act_as_user:
                 resp = requests.put("{}/v2/groups/{}".format(environmentObj['marathon_endpoint'], appName),
                                     data=data,
-                                    headers={'Content-type': 'application/json'}, auth=(self.user, self.passw))
+                                    headers={'Content-type': 'application/json'},
+                                    auth=(self.user, self.passw),
+                                    allow_redirect=True)
             else:
                 resp = requests.put("{}/v2/groups/{}".format(environmentObj['marathon_endpoint'], appName),
                                     data=data,
-                                    headers={'Content-type': 'application/json', 'act-as-user': act_as_user}, auth=(self.user, self.passw))
+                                    headers={'Content-type': 'application/json', 'act-as-user': act_as_user},
+                                    auth=(self.user, self.passw),
+                                    allow_redirect=True)
 
             print(colored("curl -X PUT -H 'Content-type: application/json' --data-binary @{} {}/v2/groups/{}".format(
                 file_path, environmentObj['marathon_endpoint'], appName), "cyan"))
@@ -71,10 +75,14 @@ class Marathon(Framework):
             deploy_url = "{}/v2/apps/{}".format(endpoint, appName)
             if not act_as_user:
                 resp = requests.put(deploy_url, data=data, headers={
-                                    'Content-type': 'application/json'}, auth=(self.user, self.passw))
+                                    'Content-type': 'application/json'},
+                                    auth=(self.user, self.passw),
+                                    allow_redirect=True)
             else:
-                resp = requests.put(deploy_url, data=data, headers={
-                                    'Content-type': 'application/json', 'act-as-user': act_as_user}, auth=(self.user, self.passw))
+                resp = requests.put(deploy_url, data=data,
+                                    headers={'Content-type': 'application/json', 'act-as-user': act_as_user},
+                                    auth=(self.user, self.passw),
+                                    allow_redirect=True)
             print(colored("curl -X PUT -H 'Content-type: application/json' --data-binary @{} {}/v2/apps/{}".format(
                 file_path, environmentObj['marathon_endpoint'], appName), "yellow"))
             color = "green"
