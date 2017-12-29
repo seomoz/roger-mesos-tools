@@ -175,6 +175,52 @@ class RogerPush(object):
             else:
                 container_list.append(tokens[1])
 
+    def getConfiguredContainersList(self, app_data):
+        for task in app_data['containers']:
+            if type(task) == dict:
+                configured_container_list.append(task.keys()[0])
+            else:
+                configured_container_list.append(task)
+
+    # vmahedia: Why does this have to be so complex? Maybe just define on the commandline explicitly
+    def getTargetEnvironment(self, args):
+        environment = roger_env.get('default_environment', '')
+        if args.env is None:
+            if "ROGER_ENV" in os.environ:
+                env_var = os.environ.get('ROGER_ENV')
+                if env_var.strip() == '':
+                    print(colored("WARNING - Environment variable $ROGER_ENV is not set. Using the default set "
+                                  "from roger-mesos-tools.config file", "yellow"))
+                else:
+                    if args.verbose:
+                        print(colored("Using value {} from environment variable $ROGER_ENV".format(env_var), "grey"))
+                    environment = env_var
+        else:
+            environment = args.env
+        return environment
+
+    def getRepository(self, app_data):
+        repo = ''
+        if common_repo != '':
+            repo = data.get('repo', common_repo)
+        else:
+            repo = data.get('repo', app_name)
+        return repo
+
+    def getAppPath(self, args, data, repo):
+        app_path = ''
+        if 'template_path' in data:
+            app_path = self.repo_relative_path(appObj, args, repo, data['template_path'])
+        else:
+            app_path = templ_dir
+        return app_path
+
+    def getAppData(self, app_object, config_dir, config_file, app_name):
+        app_object.getAppData(config_dir, config_file, app_name)
+        if not data:
+            raise ValueError("Application with name [{}] or data for it not found at {}/{}.".format(
+                             app_name, config_dir, args.config_file))
+
     def main(self, settings, appConfig, frameworkObject, hooksObj, args):
         print(colored("******Deploying application to framework******", "grey"))
         try:
@@ -205,21 +251,7 @@ class RogerPush(object):
             if hasattr(args, "image_name"):
                 self.image_name = args.image_name
 
-            # vmahedia: Why does this have to be so complex? Maybe just define on the commandline explicitly
-            environment = roger_env.get('default_environment', '')
-            if args.env is None:
-                if "ROGER_ENV" in os.environ:
-                    env_var = os.environ.get('ROGER_ENV')
-                    if env_var.strip() == '':
-                        print(colored("WARNING - Environment variable $ROGER_ENV is not set. Using the default set "
-                                      "from roger-mesos-tools.config file", "yellow"))
-                    else:
-                        if args.verbose:
-                            print(colored("Using value {} from environment variable $ROGER_ENV".format(env_var), "grey"))
-                        environment = env_var
-            else:
-                environment = args.env
-
+            environment = getTargetEnvironment(args)
             # ----------------------------------------------
             # GetEnvironmentConfig(environment)
             # ----------------------------------------------
@@ -229,36 +261,17 @@ class RogerPush(object):
                 raise ValueError("'environment' not defined in roger-mesos-tools.config file.")
             common_repo = config.get('repo', '')
 
-            # ----------------------------------------------
-            # GetContainersForApp(app)
-            # ----------------------------------------------
+            data = getAppData(config_dir, args.config_file, app_name)
             container_list = getContainersList(args.app_name)
+            configured_container_list = getConfiguredContainersList(data)
 
-            # ----------------------------------------------
-            data = appObj.getAppData(config_dir, args.config_file, app_name)
-            if not data:
-                raise ValueError("Application with name [{}] or data for it not found at {}/{}.".format(
-                                 app_name, config_dir, args.config_file))
-
-            configured_container_list = []
-            for task in data['containers']:
-                if type(task) == dict:
-                    configured_container_list.append(task.keys()[0])
-                else:
-                    configured_container_list.append(task)
-            if not set(container_list) <= set(configured_container_list):
-                raise ValueError("List of containers [{}] passed do not match list of acceptable"
-                                 "containers: [{}]".format(container_list, configured_container_list))
+            if set(container_list) > set(configured_container_list):
+                raise ValueError("List of containers [{}] passed are more than list of containers configured in config"
+                                 "file: [{}]".format(container_list, configured_container_list))
 
             frameworkObj = frameworkUtils.getFramework(data)
             framework = frameworkObj.getName()
-
-            repo = ''
-            if common_repo != '':
-                repo = data.get('repo', common_repo)
-            else:
-                repo = data.get('repo', app_name)
-
+            repo = getRepository(data)
             comp_dir = settingObj.getComponentsDir()
             templ_dir = settingObj.getTemplatesDir()
             secrets_dir = settingObj.getSecretsDir()
@@ -267,24 +280,16 @@ class RogerPush(object):
             if not os.path.isdir(comp_dir):
                 os.makedirs(comp_dir)
 
-            if not container_list:
-                data_containers = data['containers']
-            else:
-                data_containers = container_list
-
+            data_containers = data['containers'] if not container_list else cotainer_list
             failed_container_dict = {}
 
             # (vmahedia) upto this point it's all getting and checking the
             # configuration parameters
-            template = ''
+
             # Required for when work_dir,component_dir,template_dir or
             # secret_env_dir is something like '.' or './temp"
             os.chdir(cur_file_path)
-            app_path = ''
-            if 'template_path' in data:
-                app_path = self.repo_relative_path(appObj, args, repo, data['template_path'])
-            else:
-                app_path = templ_dir
+            app_path = getAppPath(args, data, repo)
 
             env = Environment(loader = FileSystemLoader("{}".format(app_path)), undefined = StrictUndefined)
             extra_vars = {}
@@ -292,9 +297,6 @@ class RogerPush(object):
                 ev_path = self.repo_relative_path(appObj, args, repo, data['extra_variables_path'])
                 with open(ev_path) as f:
                     extra_vars = yaml.load(f) if ev_path.lower().endswith('.yml') else json.load(f)
-
-            if not app_path.endswith('/'):
-                app_path = app_path + '/'
 
             if not hasattr(self, "identifier"):
                 self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.app_name)
@@ -314,11 +316,12 @@ class RogerPush(object):
             # it against the given config, checking to see if there are errors
             # ----------------------------------------------
             # (vmahedia) Meat starts from here, probably.
+            template = ''
             for container in data_containers:
                 container_name = self.getContainerName(container)
                 containerConfig = "{0}-{1}.json".format(config['name'], container_name)
 
-                template_with_path = "[{}{}]".format(app_path, containerConfig)
+                template_with_path = os.path.join(app_path, containerConfig)
                 try:
                     template = env.get_template(containerConfig)
                 except exceptions.TemplateNotFound as e:

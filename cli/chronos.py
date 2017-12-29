@@ -46,12 +46,12 @@ class Chronos(Framework):
             resp = requests.put(deploy_url, data=data,
                                 headers={'Content-type': 'application/json'},
                                 auth=(self.user, self.passw),
-                                allow_redirect=True)
+                                allow_redirects=True)
         else:
             resp = requests.put(deploy_url, data=data,
                                 headers={'Content-type': 'application/json', 'act-as-user': act_as_user},
                                 auth=(self.user, self.passw),
-                                allow_redirect=True)
+                                allow_redirects=True)
         chronos_message = "{}".format(resp)
         print(colored(chronos_message, "yellow"))
         task_id = []

@@ -56,13 +56,13 @@ class Marathon(Framework):
                                     data=data,
                                     headers={'Content-type': 'application/json'},
                                     auth=(self.user, self.passw),
-                                    allow_redirect=True)
+                                    allow_redirects=True)
             else:
                 resp = requests.put("{}/v2/groups/{}".format(environmentObj['marathon_endpoint'], appName),
                                     data=data,
                                     headers={'Content-type': 'application/json', 'act-as-user': act_as_user},
                                     auth=(self.user, self.passw),
-                                    allow_redirect=True)
+                                    allow_redirects=True)
 
             print(colored("curl -X PUT -H 'Content-type: application/json' --data-binary @{} {}/v2/groups/{}".format(
                 file_path, environmentObj['marathon_endpoint'], appName), "cyan"))
@@ -77,12 +77,12 @@ class Marathon(Framework):
                 resp = requests.put(deploy_url, data=data, headers={
                                     'Content-type': 'application/json'},
                                     auth=(self.user, self.passw),
-                                    allow_redirect=True)
+                                    allow_redirects=True)
             else:
                 resp = requests.put(deploy_url, data=data,
                                     headers={'Content-type': 'application/json', 'act-as-user': act_as_user},
                                     auth=(self.user, self.passw),
-                                    allow_redirect=True)
+                                    allow_redirects=True)
             print(colored("curl -X PUT -H 'Content-type: application/json' --data-binary @{} {}/v2/apps/{}".format(
                 file_path, environmentObj['marathon_endpoint'], appName), "yellow"))
             color = "green"
