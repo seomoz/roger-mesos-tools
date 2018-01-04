@@ -176,6 +176,7 @@ class RogerPush(object):
                 container_list.append(tokens[1])
 
     def getConfiguredContainersList(self, app_data):
+        configured_container_list = []
         for task in app_data['containers']:
             if type(task) == dict:
                 configured_container_list.append(task.keys()[0])
@@ -183,7 +184,7 @@ class RogerPush(object):
                 configured_container_list.append(task)
 
     # vmahedia: Why does this have to be so complex? Maybe just define on the commandline explicitly
-    def getTargetEnvironment(self, args):
+    def getTargetEnvironment(self, roger_env, args):
         environment = roger_env.get('default_environment', '')
         if args.env is None:
             if "ROGER_ENV" in os.environ:
@@ -199,27 +200,21 @@ class RogerPush(object):
             environment = args.env
         return environment
 
-    def getRepository(self, app_data):
+    def getRepository(self, app_data, common_repo, app_name):
         repo = ''
         if common_repo != '':
-            repo = data.get('repo', common_repo)
+            repo = app_data.get('repo', common_repo)
         else:
-            repo = data.get('repo', app_name)
+            repo = app_data.get('repo', app_name)
         return repo
 
-    def getAppPath(self, args, data, repo):
+    def getAppPath(self, appObj, args, data, repo, templ_dir):
         app_path = ''
         if 'template_path' in data:
             app_path = self.repo_relative_path(appObj, args, repo, data['template_path'])
         else:
             app_path = templ_dir
         return app_path
-
-    def getAppData(self, app_object, config_dir, config_file, app_name):
-        app_object.getAppData(config_dir, config_file, app_name)
-        if not data:
-            raise ValueError("Application with name [{}] or data for it not found at {}/{}.".format(
-                             app_name, config_dir, args.config_file))
 
     def main(self, settings, appConfig, frameworkObject, hooksObj, args):
         print(colored("******Deploying application to framework******", "grey"))
@@ -251,7 +246,7 @@ class RogerPush(object):
             if hasattr(args, "image_name"):
                 self.image_name = args.image_name
 
-            environment = getTargetEnvironment(args)
+            environment = self.getTargetEnvironment(roger_env, args)
             # ----------------------------------------------
             # GetEnvironmentConfig(environment)
             # ----------------------------------------------
@@ -259,11 +254,14 @@ class RogerPush(object):
                 environmentObj = roger_env['environments'][environment]
             except KeyError as e:
                 raise ValueError("'environment' not defined in roger-mesos-tools.config file.")
-            common_repo = config.get('repo', '')
 
-            data = getAppData(config_dir, args.config_file, app_name)
-            container_list = getContainersList(args.app_name)
-            configured_container_list = getConfiguredContainersList(data)
+            data = appObj.getAppData(config_dir, args.config_file, args.app_name)
+            if not data:
+                raise ValueError("Application with name [{}] or data for it not found at {}/{}.".format(
+                                 args.app_name, config_dir, args.config_file))
+
+            container_list = self.getContainersList(args.app_name)
+            configured_container_list = self.getConfiguredContainersList(data)
 
             if set(container_list) > set(configured_container_list):
                 raise ValueError("List of containers [{}] passed are more than list of containers configured in config"
@@ -271,7 +269,9 @@ class RogerPush(object):
 
             frameworkObj = frameworkUtils.getFramework(data)
             framework = frameworkObj.getName()
-            repo = getRepository(data)
+            common_repo = config.get('repo', '')
+
+            repo = self.getRepository(data, common_repo, args.app_name)
             comp_dir = settingObj.getComponentsDir()
             templ_dir = settingObj.getTemplatesDir()
             secrets_dir = settingObj.getSecretsDir()
@@ -289,7 +289,7 @@ class RogerPush(object):
             # Required for when work_dir,component_dir,template_dir or
             # secret_env_dir is something like '.' or './temp"
             os.chdir(cur_file_path)
-            app_path = getAppPath(args, data, repo)
+            app_path = self.getAppPath(appObj, args, data, repo, templ_dir)
 
             env = Environment(loader = FileSystemLoader("{}".format(app_path)), undefined = StrictUndefined)
             extra_vars = {}
