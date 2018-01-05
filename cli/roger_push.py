@@ -94,10 +94,8 @@ class RogerPush(object):
             with open(file_path) as f:
                 return_file = yaml.load(f) if file_path.lower().endswith('.yml') else json.load(f)
             return return_file
-        except IOError as e:
-            raise e
         except ValueError as e:
-            raise ValueError("Error while loading json from {} - {}".format(file_path, e))
+            raise ValueError("Error while loading secrets from {} - {}".format(file_path, e))
 
 
     def replaceSecrets(self, output_dict, secrets_dict):
@@ -256,7 +254,7 @@ class RogerPush(object):
             try:
                 environmentObj = roger_env['environments'][environment]
             except KeyError as e:
-                raise ValueError("'environment' not defined in roger-mesos-tools.config file.")
+                raise ValueError("'environment' not defined in roger-mesos-tools.config file. - {}".format(e))
 
             data = appObj.getAppData(config_dir, args.config_file, args.app_name)
             if not data:
@@ -266,7 +264,7 @@ class RogerPush(object):
             container_list = self.getContainersList(args.app_name)
             configured_container_list = self.getConfiguredContainersList(data)
 
-            if set(container_list) > set(configured_container_list):
+            if not set(container_list) <= set(configured_container_list):
                 raise ValueError("List of containers [{}] passed are more than list of containers configured in config"
                                  "file: [{}]".format(container_list, configured_container_list))
 
@@ -376,10 +374,10 @@ class RogerPush(object):
                     if output != "StandardError":
                         try:
                             comp_dir_exists = os.path.exists("{0}".format(comp_dir))
-                            if comp_dir_exists is False:
+                            if not comp_dir_exists:
                                 os.makedirs("{0}".format(comp_dir))
                             comp_env_dir_exists = os.path.exists("{0}/{1}".format(comp_dir, environment))
-                            if comp_env_dir_exists is False:
+                            if not comp_env_dir_exists:
                                 os.makedirs("{0}/{1}".format(comp_dir, environment))
                         except Exception as e:
                             logging.error(traceback.format_exc())
