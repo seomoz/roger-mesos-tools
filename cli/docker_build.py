@@ -90,7 +90,7 @@ def download_private_repos(projects, update_id=None):
 # origin/ branch, although if we only use this script, the branch never
 # should exist anyway.
 GEMFILE_BRANCH_HACK = '''
-$gem2 = method(:gem)
+$gem2 = method(:gem) rescue method(:_gem)
 def gem(*args)
   gem, ver, opts = args
   opts = ver  if !opts && ver.is_a?(Hash)
