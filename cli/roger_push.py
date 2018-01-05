@@ -10,6 +10,7 @@ import os
 import sys
 import traceback
 import logging
+import yaml
 from cli.settings import Settings
 from cli.appconfig import AppConfig
 from cli.utils import Utils
@@ -86,8 +87,8 @@ class RogerPush(object):
     # (vmahedia) todo: https://seomoz.atlassian.net/browse/ROGER-2396
     # this has a lot of redundant messages and logic of assuming the
     # secret file location is annoying, make it obvious and simple
-    def loadSecrets(self, file_path):
-        if args.verbose:
+    def loadSecrets(self, verbose, file_path):
+        if verbose:
             print(colored("Trying to load secrets from file {}".format(file_path), "cyan"))
         try:
             with open(file_path) as f:
@@ -174,6 +175,7 @@ class RogerPush(object):
                 container_list = tokens[1].split(',')
             else:
                 container_list.append(tokens[1])
+        return container_list
 
     def getConfiguredContainersList(self, app_data):
         configured_container_list = []
@@ -182,6 +184,7 @@ class RogerPush(object):
                 configured_container_list.append(task.keys()[0])
             else:
                 configured_container_list.append(task)
+        return configured_container_list
 
     # vmahedia: Why does this have to be so complex? Maybe just define on the commandline explicitly
     def getTargetEnvironment(self, roger_env, args):
@@ -335,8 +338,9 @@ class RogerPush(object):
                 # Why are we getting the secrets everytime, this requires the file to be
                 # present
                 additional_vars.update(extra_vars)
-                if not secrets_file:
-                    secret_vars = self.loadSecrets(args.secrets_file)
+                secret_vars = []
+                if args.secrets_file:
+                    secret_vars = self.loadSecrets(args.verbose, args.secrets_file)
                     additional_vars.update(secret_vars)
 
                 image_path = "{0}/{1}".format(roger_env['registry'], args.image_name)
