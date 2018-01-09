@@ -406,15 +406,13 @@ class RogerDeploy(object):
         print(colored("******Fetching current version deployed or latest version from registry.\
                        This is used to bump to next version.******", "grey"))
         if skip_build:
-            curr_image_ver = frameworkObj.getCurrentImageVersion(
-                roger_env, environment, app)
+            curr_image_ver = frameworkObj.getCurrentImageVersion(roger_env, environment, app)
             self.image_name = curr_image_ver
 
             if args.verbose:
                 print("Current image version deployed on {0} is :{1}".format(framework, curr_image_ver))
             if curr_image_ver is not None:
-                image_name = "{0}-{1}-{2}".format(
-                    config['name'], app, curr_image_ver)
+                image_name = "{0}-{1}-{2}".format(config['name'], app, curr_image_ver)
                 if args.verbose:
                     print("Image current version from {0} endpoint is:{1}".format(framework, image_name))
             else:
@@ -470,6 +468,9 @@ class RogerDeploy(object):
         print(colored(deployMessage, "green"))
 
     def locateConfigFile(self, args, gitObj):
+        if not args.config_repo:
+            return # Nothing to do here, we are not asked to fetch the repo where config resides
+            
         # Clone the git repo first because config lives there, there's nothing that we can do without this file
         # this is not the clean way but the code is very convulted for now to implement this in a clean manner
         # For now, we will clone the repo silently and use that config. We have to clone it everytime because we

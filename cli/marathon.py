@@ -209,22 +209,39 @@ class Marathon(Framework):
     def getCurrentImageVersion(self, roger_env, environment, application):
         data = self.get(roger_env, environment)
         self.fetchUserPass(environment)
+        images = {}
         for app in data['apps']:
             # (vmahedia) todo: there's a YOOGE bug here, this just picks the first image it founds
             # with an app name in it, this is wrong, cli should either be very explicity or not try
             # to guess at all. We need to change this bigly.
             # https://seomoz.atlassian.net/browse/ROGER-2393
+
+            # Just pickup the highest version number image and don't worry about the SHA
             if app['container'] is not None:
                 docker_image = app['container']['docker']['image']
+                # store all the image names for this Application
+                # It is possible that some format could be expected ones like
+                # moz-content-kairos-7da406eb9e8937875e0548ae1149/v0.46 and others like
+                # seomoz/moz-content-kairos:2.1.3 so we need to handle both the cases not either or
+
+                # TODO check if the application name is really unique that we can rely on this check?
                 if application in docker_image:
-                    if len(docker_image.split('/v')) == 2:
+                    # TODO this looks wrong, it is quite possible to have /v in public image as well
+                    tokens = docker_image.split('/v')
+                    if len(tokens) == 2:
                         # Image format expected
-                        # moz-content-kairos-7da406eb9e8937875e0548ae1149/v0.46
-                        return utils.extractFullShaAndVersion(docker_image)
+                        # moz-content-kairos-7da406eb9e8937875e0548ae1149/v0.46 <-- this has version number 0.46
+                        version = tokens[-1]
+                        images[version] = utils.extractFullShaAndVersion(docker_image)
                     else:
                         # Docker images of the format: grafana/grafana:2.1.3 or
                         # postgres:9.4.1
-                        return docker_image
+                        tokens = docker_image.split(':')
+                        version = tokens[-1]
+                        # we should let it throw if the version is not defined
+                        images[version] = docker_image
+        latest_version = max(images.keys())
+        return images[latest_version]
 
     def getInstanceDetails(self, roger_env, environment):
         tasks = self.getTasks(roger_env, environment)
