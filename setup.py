@@ -98,5 +98,5 @@ setup(
             'roger=bin.roger:main', 'j2y=bin.j2y:main'
         ]
     },
-    scripts={ 'cli/roger_build.py', 'cli/roger_deploy.py', 'cli/roger_gitpull.py', 'cli/roger_init.py', 'cli/roger_logs.py', 'cli/roger_ps.py', 'cli/roger_push.py', 'cli/roger_shell.py', 'cli/roger_promote.py' }
+    scripts={ 'bin/docker-forward-ssh-agent', 'cli/roger_build.py', 'cli/roger_deploy.py', 'cli/roger_gitpull.py', 'cli/roger_init.py', 'cli/roger_logs.py', 'cli/roger_ps.py', 'cli/roger_push.py', 'cli/roger_shell.py', 'cli/roger_promote.py' }
 )
