@@ -200,6 +200,8 @@ class RogerDeploy(object):
                                       "is only for convenience so that config file can reside in your app repo or any "
                                       "repo and not roger-cli repo"
                                       "repo must be under 'seomoz' organization")
+        self.parser.add_argument('--build-arg', action='append',
+                                 help='docker build-arg; Use flags multiple times to pass more than one arg')
         # (vmahedia) todo Changing this name is slightly more complicated, so making it more verbose for now
         self.parser.add_argument('-d', '--directory',
                                  help="App Repo will be checked out here, this is the working dir CLI will use."
