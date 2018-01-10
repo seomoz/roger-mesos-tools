@@ -11,17 +11,6 @@ from cli.settings import Settings
 
 class AppConfig:
 
-    def __init__(self):
-        self._config_file_path = ""
-
-    @property
-    def config_file_path(self):
-        return self._config_file_path
-
-    @config_file_path.setter
-    def config_file_path(self, value):
-        self._config_file_path = value
-
     def getRogerEnv(self, config_dir):
         roger_env = None
         env_file = '{0}/roger-mesos-tools.config'
@@ -30,31 +19,23 @@ class AppConfig:
                 roger_env = yaml.load(roger_env_file_obj)
         return roger_env
 
-    # (vmahedia) we should just take file as an argument and not directory
-    # but for backward compatibility we have to keep it around for a while.
-    # #backward-compatibility
     def getConfig(self, config_dir, config_file):
-        config = None
-        config_file_to_load = ""
-        # Currently CLI reads a environment variable which has ROGER_CONFIG DIR so if the config file
-        # is not defined on commandline with absolutey path, then it assumes config file must be
-        # present on the path defined by env variable for ex. ROGER_CONFIG_DIR=/vagrant/config
-        if os.path.isfile(config_file):
-            config_file_to_load = config_file
-        else:
-            config_file_to_load = '{0}/{1}'.format(config_dir, config_file)
+        '''Load the Roger configuration file with path specified by
+        'config_file' as either a YAML file or a JSON file. If 'config_file' is
+        a relative path, then look for it relative to the 'config_dir' path.
+        '''
+        if not os.path.isabs(config_file):
+            config_file = os.path.join(config_dir, config_file)
 
-        # This is hacky but to maintain backward-compatibility, we need to keep the code above and also
-        # support a new feature which lets customer put config file in their repo or anywhere else for
-        # that we need to know the path - all the paths shouold be in the working directory if customers
-        # expects us to locate the file within a repo.
-        # so if the file is set through this class's property, that means we got it from commandline args
-        # from user so use that one because it's explicit.
-        if os.path.exists(self._config_file_path) and os.path.isfile(self._config_file_path):
-            config_file_to_load = self._config_file_path
+        if not (os.path.isfile(config_file)
+                and os.access(config_file, os.R_OK)):
+            raise ValueError("Config filepath '{}' is not a readable file"
+                             .format(config_file))
 
-        with open(config_file_to_load) as config_file_obj:
-            config = yaml.load(config_file_obj) if config_file.lower().endswith('.yml') else json.load(config_file_obj)
+        load = yaml.load if config_file.lower().endswith('.yml') else json.load
+        with open(config_file) as config_file_obj:
+            config = load(config_file_obj)
+
         return config
 
     def getAppData(self, config_dir, config_file, app_name):
