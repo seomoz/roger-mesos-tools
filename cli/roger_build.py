@@ -5,6 +5,7 @@ import argparse
 import json
 import os
 import sys
+import shlex
 from cli.settings import Settings
 from cli.appconfig import AppConfig
 from cli.hooks import Hooks
@@ -45,8 +46,7 @@ class RogerBuild(object):
         self.tag_name = ""
 
     def parse_args(self):
-        self.parser = argparse.ArgumentParser(
-            prog='roger build', description=describe())
+        self.parser = argparse.ArgumentParser(prog='roger build', description=describe())
         self.parser.add_argument('app_name', metavar='app_name',
                                  help="application to build. Example: 'agora'.")
         self.parser.add_argument('directory', metavar='directory',
@@ -58,8 +58,9 @@ class RogerBuild(object):
         self.parser.add_argument('config_file', metavar='config_file',
                                  help="configuration file to use. Example: 'content.json'.")
         self.parser.add_argument('-v', '--verbose', help="verbose mode for debugging. Defaults to false.", action="store_true")
-        self.parser.add_argument(
-            '--push', '-p', help="Also push to registry. Defaults to false.", action="store_true")
+        self.parser.add_argument('--push', '-p', help="Also push to registry. Defaults to false.", action="store_true")
+        self.parser.add_argument('--build-arg', action='append',
+                                 help='docker build-arg; Use flags multiple times to pass more than one arg')
         return self.parser
 
     def main(self, settingObj, appObj, hooksObj, dockerUtilsObj, dockerObj, args):
@@ -88,11 +89,18 @@ class RogerBuild(object):
             else:
                 repo = data.get('repo', args.app_name)
 
-            build_args = {}
+            docker_build_args = {}
+
             if 'build-args' in data:
                 if 'environment' in data['build-args']:
                     if args.env in data['build-args']['environment']:
-                        build_args = data['build-args']['environment'][args.env]
+                        docker_build_args = data['build-args']['environment'][args.env]
+
+            # read the build-args from commandline like docker does as well
+            # build-args defined on command line will override the ones from the config file, for the same keys
+            # so this update of dictionary has to be done after we have read build arg values from the config file
+            if args.build_arg:
+                docker_build_args.update(dict(arg_key_val_str.split('=') for arg_key_val_str in args.build_arg))
 
             projects = data.get('privateProjects', [])
 
@@ -116,7 +124,7 @@ class RogerBuild(object):
             # changelog : working_directory or checkout_dir should be absolute path, not backward-compatible
             checkout_dir = os.path.abspath(args.directory)
             repo_name = appObj.getRepoName(repo)
-            # (vmahedia) todo : this should be called docker_file_dir 
+            # (vmahedia) todo : this should be called docker_file_dir
             dockerfile_rel_repo_path = data.get('path', '')
             file_path = os.path.join(checkout_dir, repo_name, dockerfile_rel_repo_path)
 
@@ -160,14 +168,14 @@ class RogerBuild(object):
                     if checkout_dir == args.directory:
                         try:
                             dockerObj.docker_build(
-                                dockerUtilsObj, appObj, args.directory, repo, projects, dockerfile_rel_repo_path, image, build_args, args.verbose, build_filename)
+                                dockerUtilsObj, appObj, args.directory, repo, projects, dockerfile_rel_repo_path, image, docker_build_args, args.verbose, build_filename)
                         except ValueError:
                             raise ValueError("Docker build failed")
                     else:
                         directory = '{0}/{1}'.format(cur_dir, args.directory)
                         try:
                             dockerObj.docker_build(
-                                dockerUtilsObj, appObj, directory, repo, projects, dockerfile_rel_repo_path, image, build_args, args.verbose, build_filename)
+                                dockerUtilsObj, appObj, directory, repo, projects, dockerfile_rel_repo_path, image, docker_build_args, args.verbose, build_filename)
                         except ValueError:
                             print('Docker build failed.')
                             raise

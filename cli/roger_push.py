@@ -10,6 +10,7 @@ import os
 import sys
 import traceback
 import logging
+import yaml
 from cli.settings import Settings
 from cli.appconfig import AppConfig
 from cli.utils import Utils
@@ -86,41 +87,16 @@ class RogerPush(object):
     # (vmahedia) todo: https://seomoz.atlassian.net/browse/ROGER-2396
     # this has a lot of redundant messages and logic of assuming the
     # secret file location is annoying, make it obvious and simple
-    def loadSecrets(self, secrets_dir, file_name, args, environment):
-        if args.secrets_file is not None:
-            print("Using specified secrets file: {}".format(args.secrets_file))
-            file_name = args.secrets_file
-        exists = os.path.exists(secrets_dir)
-        if exists is False:
-            os.makedirs(secrets_dir)
-
-        # (vmahedia) WE SHOULD NOT DO ANY GUESSING GAME BE EXPLICIT
-        # about where we expect what and argument should make that very clear to customers
-        # Two possible paths -- first without environment, second with
-        path1 = "{}/{}".format(secrets_dir, file_name)
-        path2 = "{}/{}/{}".format(secrets_dir, environment, file_name)
-        if args.verbose:
-            print(colored("Trying to load secrets from file {} or {}".format(path1, path2), "cyan"))
-
+    def loadSecrets(self, verbose, file_path):
+        if verbose:
+            print(colored("Trying to load secrets from file {}".format(file_path), "cyan"))
         try:
-            with open(path1) as f:
-                return_file = yaml.load(f) if path1.lower().endswith('.yml') else json.load(f)
+            with open(file_path) as f:
+                return_file = yaml.load(f) if file_path.lower().endswith('.yml') else json.load(f)
             return return_file
-        except IOError:
-            pass
         except ValueError as e:
-            raise ValueError("Error while loading json from {} - {}".format(path1, e))
+            raise ValueError("Error while loading secrets from {} - {}".format(file_path, e))
 
-        try:
-            with open(path2) as f:
-                return_file = yaml.load(f) if path2.lower().endswith('.yml') else json.load(f)
-            return return_file
-        except IOError:
-            if args.verbose:
-                print("WARNING - Couldn't load any secrets file. Searched {} and {}. \nIGNORE this above warning if you do not have secrets or your secrets file is passed in using the optional argument and does not reside in the above 2 looked up paths.".format(path1, path2))
-            return {}
-        except ValueError as e:
-            raise ValueError("Error while loading json from {} - {}".format(path2, e))
 
     def replaceSecrets(self, output_dict, secrets_dict):
         if type(output_dict) is not dict:
@@ -149,8 +125,7 @@ class RogerPush(object):
         parses the JSON keys with the secret variables. Returns back
         a JSON string. Raises an error if there are any SECRET variables still exists.'''
         output_dict = json.loads(json_str)
-        json_str = json.dumps(self.replaceSecrets(
-            output_dict, secrets), indent=4)
+        json_str = json.dumps(self.replaceSecrets(output_dict, secrets), indent=4)
 
         if '\"SECRET\"' in json_str:
             print(colored("ERROR - Found the \"SECRET\" keyword in the template file -- does your secrets file have all secret environment variables?", "red"))
@@ -171,7 +146,6 @@ class RogerPush(object):
                 variables.update(obj['vars'].get('environment', {}).get(environment, {}))
 
         variables.update(additional_vars)
-
         return template.render(variables)
 
     def statsd_counter_logging(self, metric):
@@ -187,6 +161,61 @@ class RogerPush(object):
 
     def getContainerName(self, container):
          return str(container.keys()[0]) if type(container) == dict else container
+
+    def getContainersList(self, app_name):
+        container_list = []
+        # todo (vmahedia): What does ':' signify? Put explanation.
+        if ':' in app_name:
+            tokens = app_name.split(':')
+            app_name = tokens[0]
+            # todo (vmahedia): it's container list - need to explain syntax
+            if ',' in tokens[1]:
+                container_list = tokens[1].split(',')
+            else:
+                container_list.append(tokens[1])
+        return container_list
+
+    def getConfiguredContainersList(self, app_data):
+        configured_container_list = []
+        for task in app_data['containers']:
+            if type(task) == dict:
+                configured_container_list.append(task.keys()[0])
+            else:
+                configured_container_list.append(task)
+        return configured_container_list
+
+    # vmahedia: Why does this have to be so complex? Maybe just define on the commandline explicitly
+    def getTargetEnvironment(self, roger_env, args):
+        environment = roger_env.get('default_environment', '')
+        if args.env is None:
+            if "ROGER_ENV" in os.environ:
+                env_var = os.environ.get('ROGER_ENV')
+                if env_var.strip() == '':
+                    print(colored("WARNING - Environment variable $ROGER_ENV is not set. Using the default set "
+                                  "from roger-mesos-tools.config file", "yellow"))
+                else:
+                    if args.verbose:
+                        print(colored("Using value {} from environment variable $ROGER_ENV".format(env_var), "grey"))
+                    environment = env_var
+        else:
+            environment = args.env
+        return environment
+
+    def getRepository(self, app_data, common_repo, app_name):
+        repo = ''
+        if common_repo != '':
+            repo = app_data.get('repo', common_repo)
+        else:
+            repo = app_data.get('repo', app_name)
+        return repo
+
+    def getAppPath(self, appObj, args, data, repo, templ_dir):
+        app_path = ''
+        if 'template_path' in data:
+            app_path = self.repo_relative_path(appObj, args, repo, data['template_path'])
+        else:
+            app_path = templ_dir
+        return app_path
 
     def main(self, settings, appConfig, frameworkObject, hooksObj, args):
         print(colored("******Deploying application to framework******", "grey"))
@@ -210,76 +239,40 @@ class RogerPush(object):
             if not hasattr(args, "app_name"):
                 args.app_name = ""
 
-            if 'registry' not in roger_env.keys():
-                raise ValueError("Registry not found in roger-mesos-tools.config file.")
-            else:
+            try:
                 self.registry = roger_env['registry']
+            except KeyError:
+                raise ValueError("Registry not found in roger-mesos-tools.config file.")
 
             if hasattr(args, "image_name"):
                 self.image_name = args.image_name
 
-            environment = roger_env.get('default_environment', '')
-            if args.env is None:
-                if "ROGER_ENV" in os.environ:
-                    env_var = os.environ.get('ROGER_ENV')
-                    if env_var.strip() == '':
-                        print(colored("WARNING - Environment variable $ROGER_ENV is not set. Using the default set from roger-mesos-tools.config file", "yellow"))
-                    else:
-                        if args.verbose:
-                            print(colored("Using value {} from environment variable $ROGER_ENV".format(env_var), "grey"))
-                        environment = env_var
-            else:
-                environment = args.env
-            # ----------------------------------------------
-
-            if environment not in roger_env['environments']:
-                raise ValueError("Environment not found in roger-mesos-tools.config file.")
-
+            environment = self.getTargetEnvironment(roger_env, args)
             # ----------------------------------------------
             # GetEnvironmentConfig(environment)
             # ----------------------------------------------
-            environmentObj = roger_env['environments'][environment]
-            common_repo = config.get('repo', '')
+            try:
+                environmentObj = roger_env['environments'][environment]
+            except KeyError as e:
+                raise ValueError("'environment' not defined in roger-mesos-tools.config file. - {}".format(e))
 
-            # ----------------------------------------------
-            # GetContainersForApp(app)
-            # ----------------------------------------------
-            app_name = args.app_name
-            container_list = []
-            # todo (vmahedia): What does ':' signify? Put explanation.
-            if ':' in app_name:
-                tokens = app_name.split(':')
-                app_name = tokens[0]
-                # todo (vmahedia): it's container list - need to explain syntax
-                if ',' in tokens[1]:
-                    container_list = tokens[1].split(',')
-                else:
-                    container_list.append(tokens[1])
-            # ----------------------------------------------
-            data = appObj.getAppData(config_dir, args.config_file, app_name)
+            data = appObj.getAppData(config_dir, args.config_file, args.app_name)
             if not data:
                 raise ValueError("Application with name [{}] or data for it not found at {}/{}.".format(
-                    app_name, config_dir, args.config_file))
+                                 args.app_name, config_dir, args.config_file))
 
-            configured_container_list = []
-            for task in data['containers']:
-                if type(task) == dict:
-                    configured_container_list.append(task.keys()[0])
-                else:
-                    configured_container_list.append(task)
+            container_list = self.getContainersList(args.app_name)
+            configured_container_list = self.getConfiguredContainersList(data)
+
             if not set(container_list) <= set(configured_container_list):
-                raise ValueError("List of containers [{}] passed do not match list of acceptable containers: [{}]".format(
-                    container_list, configured_container_list))
+                raise ValueError("List of containers [{}] passed are more than list of containers configured in config"
+                                 "file: [{}]".format(container_list, configured_container_list))
 
             frameworkObj = frameworkUtils.getFramework(data)
             framework = frameworkObj.getName()
+            common_repo = config.get('repo', '')
 
-            repo = ''
-            if common_repo != '':
-                repo = data.get('repo', common_repo)
-            else:
-                repo = data.get('repo', app_name)
-
+            repo = self.getRepository(data, common_repo, args.app_name)
             comp_dir = settingObj.getComponentsDir()
             templ_dir = settingObj.getTemplatesDir()
             secrets_dir = settingObj.getSecretsDir()
@@ -288,33 +281,23 @@ class RogerPush(object):
             if not os.path.isdir(comp_dir):
                 os.makedirs(comp_dir)
 
-            if not container_list:
-                data_containers = data['containers']
-            else:
-                data_containers = container_list
-
+            data_containers = data['containers'] if not container_list else cotainer_list
             failed_container_dict = {}
 
             # (vmahedia) upto this point it's all getting and checking the
             # configuration parameters
-            template = ''
+
             # Required for when work_dir,component_dir,template_dir or
             # secret_env_dir is something like '.' or './temp"
             os.chdir(cur_file_path)
-            app_path = ''
-            if 'template_path' in data:
-                app_path = self.repo_relative_path(appObj, args, repo, data['template_path'])
-            else:
-                app_path = templ_dir
+            app_path = self.getAppPath(appObj, args, data, repo, templ_dir)
 
+            env = Environment(loader = FileSystemLoader("{}".format(app_path)), undefined = StrictUndefined)
             extra_vars = {}
             if 'extra_variables_path' in data:
                 ev_path = self.repo_relative_path(appObj, args, repo, data['extra_variables_path'])
                 with open(ev_path) as f:
                     extra_vars = yaml.load(f) if ev_path.lower().endswith('.yml') else json.load(f)
-
-            if not app_path.endswith('/'):
-                app_path = app_path + '/'
 
             if not hasattr(self, "identifier"):
                 self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.app_name)
@@ -334,12 +317,12 @@ class RogerPush(object):
             # it against the given config, checking to see if there are errors
             # ----------------------------------------------
             # (vmahedia) Meat starts from here, probably.
+            template = ''
             for container in data_containers:
                 container_name = self.getContainerName(container)
                 containerConfig = "{0}-{1}.json".format(config['name'], container_name)
 
-                env = Environment(loader = FileSystemLoader("{}".format(app_path)), undefined = StrictUndefined)
-                template_with_path = "[{}{}]".format(app_path, containerConfig)
+                template_with_path = os.path.join(app_path, containerConfig)
                 try:
                     template = env.get_template(containerConfig)
                 except exceptions.TemplateNotFound as e:
@@ -353,20 +336,20 @@ class RogerPush(object):
                 # Why are we getting the secrets everytime, this requires the file to be
                 # present
                 additional_vars.update(extra_vars)
-                secret_vars = self.loadSecrets(secrets_dir, containerConfig, args, environment)
-                additional_vars.update(secret_vars)
+                secret_vars = []
+                if args.secrets_file:
+                    secret_vars = self.loadSecrets(args.verbose, args.secrets_file)
+                    additional_vars.update(secret_vars)
 
-                image_path = "{0}/{1}".format(
-                    roger_env['registry'], args.image_name)
-                print("Rendering content from template {} for environment [{}]".format(
-                    template_with_path, environment))
+                image_path = "{0}/{1}".format(roger_env['registry'], args.image_name)
+                print("Rendering content from template {} for environment [{}]".format(template_with_path, environment))
                 try:
-                    output = self.renderTemplate(template, environment, image_path, data, config, container, container_name, additional_vars)
+                    output = self.renderTemplate(template, environment, image_path, data,
+                                                 config, container, container_name, additional_vars)
                 except exceptions.UndefinedError as e:
                     error_str = "The following Undefined Jinja variable error occurred. %s.\n" % e
                     print(colored(error_str, "red"), file=sys.stderr)
                     failed_container_dict[container_name] = error_str
-
                     # we are going to fail even if one of the container config is not valid but we will
                     # still go through the loop and collect all the errors before we bail out
                     validation_failed = True
@@ -385,19 +368,17 @@ class RogerPush(object):
                     except Exception as e:
                         raise ValueError("Error while loading json from {} - {}".format(template_with_path, e))
 
-                    if '\"SECRET\"' in output:
-                        output = self.mergeSecrets(output, self.loadSecrets(
-                            secrets_dir, containerConfig, args, environment))
+                    if '\"SECRET\"' in output and not args.secrets_file:
+                        raise ValueError("Secrets present, need secret file to populate secrets")
+                    output = self.mergeSecrets(output, secret_vars)
                     if output != "StandardError":
                         try:
-                            comp_exists = os.path.exists("{0}".format(comp_dir))
-                            if comp_exists is False:
+                            comp_dir_exists = os.path.exists("{0}".format(comp_dir))
+                            if not comp_dir_exists:
                                 os.makedirs("{0}".format(comp_dir))
-                            comp_env_exists = os.path.exists(
-                                "{0}/{1}".format(comp_dir, environment))
-                            if comp_env_exists is False:
-                                os.makedirs(
-                                    "{0}/{1}".format(comp_dir, environment))
+                            comp_env_dir_exists = os.path.exists("{0}/{1}".format(comp_dir, environment))
+                            if not comp_env_dir_exists:
+                                os.makedirs("{0}/{1}".format(comp_dir, environment))
                         except Exception as e:
                             logging.error(traceback.format_exc())
                         # (vmahedia) Should we write out the files even though there is an error with one of the
