@@ -15,6 +15,7 @@ from cli.settings import Settings
 from cli.marathonvalidator import MarathonValidator
 from cli.haproxyparser import HAProxyParser
 from cli.appconfig import AppConfig
+from distutils.version import LooseVersion
 requests.packages.urllib3.disable_warnings()
 
 utils = Utils()
@@ -225,6 +226,7 @@ class Marathon(Framework):
                 # seomoz/moz-content-kairos:2.1.3 so we need to handle both the cases not either or
 
                 # TODO check if the application name is really unique that we can rely on this check?
+                # TODO are these the only two options for image name, does not seem correct, does it?
                 if application in docker_image:
                     # TODO this looks wrong, it is quite possible to have /v in public image as well
                     tokens = docker_image.split('/v')
@@ -240,7 +242,9 @@ class Marathon(Framework):
                         version = tokens[-1]
                         # we should let it throw if the version is not defined
                         images[version] = docker_image
-        latest_version = max(images.keys())
+        versions = images.keys()
+        versions.sort(key=LooseVersion)
+        latest_version = versions[-1]
         return images[latest_version]
 
     def getInstanceDetails(self, roger_env, environment):
