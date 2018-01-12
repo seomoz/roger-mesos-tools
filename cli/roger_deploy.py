@@ -193,6 +193,8 @@ class RogerDeploy(object):
                                  help="increment patch in version. Defaults to false.'")
         self.parser.add_argument('-S', '--secrets-file',
                                  help="specifies an optional secrets file for deployment runtime variables.")
+        self.parser.add_argument('--build-arg', action='append',
+                                 help='docker build-arg; Use flags multiple times to pass more than one arg')
         # (vmahedia) todo Changing this name is slightly more complicated, so making it more verbose for now
         self.parser.add_argument('-d', '--directory',
                                  help="App Repo will be checked out here, this is the working dir CLI will use."
