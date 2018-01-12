@@ -55,7 +55,7 @@ class DockerUtils:
         return result
 
     def docker_search_v2(self, registry):
-        url = 'http://{}/v2/_catalog?n=500'.format(registry)
+        url = 'http://{}/v2/_catalog?n=10000'.format(registry)
         response = requests.get(url)
         data = response.json()
         tmp_repos_list = data['repositories']
@@ -64,7 +64,7 @@ class DockerUtils:
             for item in tmp_repos_list:
                 result += item + '\n'
             last_fetched_repo = tmp_repos_list[-1]
-            url = 'http://{}/v2/_catalog?n=100&last={}'.format(registry, last_fetched_repo)
+            url = 'http://{}/v2/_catalog?n=10000&last={}'.format(registry, last_fetched_repo)
             response = requests.get(url)
             data = response.json()
             tmp_repos_list = data['repositories']

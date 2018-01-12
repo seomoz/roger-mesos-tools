@@ -398,8 +398,8 @@ class RogerDeploy(object):
         # We deal with only one repo at a time. It may change in future but we can change the code then.
         image_git_sha = getGitSha(work_dir, repo, branch, gitObj)
         image_name = "{0}-{1}-{2}/v0.1.0".format(config['name'], app, image_git_sha)
-        print(colored("******Fetching current version deployed or latest version from registry.\
-                       This is used to bump to next version.******", "grey"))
+        print(colored("******Fetching current version deployed or latest version from registry."
+                       "This is used to bump to next version.******", "grey"))
         if skip_build:
             curr_image_ver = frameworkObj.getCurrentImageVersion(roger_env, environment, app)
             self.image_name = curr_image_ver
@@ -415,8 +415,7 @@ class RogerDeploy(object):
                     print("Using base version for image:{0}".format(image_name))
         else:
             # Docker build,tag and push
-            image_name = self.getNextVersion(
-                config, roger_env, app, branch, work_dir, repo, args, gitObj)
+            image_name = self.getNextVersion(config, roger_env, app, branch, work_dir, repo, args, gitObj)
             print(colored("******Done finding latest version******", "green"))
             image_name = "{0}-{1}-{2}".format(config['name'], app, image_name)
             print(colored("Bumped up image to version:{0}".format(image_name), "green"))
