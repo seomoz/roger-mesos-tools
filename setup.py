@@ -10,6 +10,13 @@ from os import path
 import sys
 from setuptools.command.test import test as TestCommand
 
+# Work around a bug in distutils where attempted hard links within a directory
+# shared between the Vagrant machine and the host fails. Deleting the 'os.link'
+# method causes distutils to copy instead of using hard links.
+# https://bugs.python.org/issue8876
+if os.environ.get('USER','') == 'vagrant':
+    del os.link
+
 here = path.abspath(path.dirname(__file__))
 
 
