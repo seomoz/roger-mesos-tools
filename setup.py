@@ -7,6 +7,7 @@ https://github.com/pypa/sampleproject
 from setuptools import setup, find_packages
 from codecs import open
 from os import path
+import os
 import sys
 from setuptools.command.test import test as TestCommand
 
