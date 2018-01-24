@@ -84,19 +84,36 @@ class RogerPush(object):
                                  help="specifies an optional secrets file for deploy runtime variables.")
         return self.parser
 
-    # (vmahedia) todo: https://seomoz.atlassian.net/browse/ROGER-2396
-    # this has a lot of redundant messages and logic of assuming the
-    # secret file location is annoying, make it obvious and simple
-    def loadSecrets(self, verbose, file_path):
-        if verbose:
-            print(colored("Trying to load secrets from file {}".format(file_path), "cyan"))
-        try:
-            with open(file_path) as f:
-                return_file = yaml.load(f) if file_path.lower().endswith('.yml') else json.load(f)
-            return return_file
-        except ValueError as e:
-            raise ValueError("Error while loading secrets from {} - {}".format(file_path, e))
+    def loadSecrets(self, secrets_dir, file_name, args, environment):
+        if args.secrets_file:
+            print("Using specified secrets file: {}".format(args.secrets_file))
+            file_name = args.secrets_file
 
+        exists = os.path.exists(secrets_dir)
+        if exists is False:
+            os.makedirs(secrets_dir)
+
+        # (vmahedia) WE SHOULD NOT DO ANY GUESSING GAME BE EXPLICIT
+        # about where we expect what and argument should make that very clear to customers
+        # Two possible paths -- first without environment, second with
+        path1 = "{}/{}".format(secrets_dir, file_name)
+        path2 = "{}/{}/{}".format(secrets_dir, environment, file_name)
+        secrets_file_paths = [file_name] if os.path.isabs(file_name) else [path1, path2]
+        for secrets_file_path in secrets_file_paths:
+            if args.verbose:
+                print(colored("Trying to load secrets from file {}".format(secrets_file_path), "cyan"))
+            try:
+                with open(secrets_file_path) as f:
+                    return_file = yaml.load(f) if secrets_file_path.lower().endswith('.yml') else json.load(f)
+                if args.verbose:
+                    print(colored("Loaded secrets from file {}".format(secrets_file_path), "cyan"))
+                return return_file
+            except IOError:
+                if args.verbose:
+                    print(colored("Unable to find secrets file {}".format(secrets_file_path), "cyan"))
+                pass
+            except ValueError as e:
+                raise ValueError("Error while loading secrets from {} - {}".format(secrets_file_path, e))
 
     def replaceSecrets(self, output_dict, secrets_dict):
         if type(output_dict) is not dict:
@@ -336,9 +353,8 @@ class RogerPush(object):
                 # Why are we getting the secrets everytime, this requires the file to be
                 # present
                 additional_vars.update(extra_vars)
-                secret_vars = []
-                if args.secrets_file:
-                    secret_vars = self.loadSecrets(args.verbose, args.secrets_file)
+                secret_vars = self.loadSecrets(secrets_dir, containerConfig, args, environment)
+                if secret_vars is not None:
                     additional_vars.update(secret_vars)
 
                 image_path = "{0}/{1}".format(roger_env['registry'], args.image_name)
@@ -419,8 +435,8 @@ class RogerPush(object):
                     frameworkObj.act_as_user = config['owner']
 
                 tools_version_value = self.utils.get_version()
-                image_name = self.registry + "/" + args.image_name
-                image_tag_value = urllib.quote("'" + image_name + "'")
+                if self.registry not in args.image_name:
+                    image_name = self.registry + "/" + args.image_name
 
                 for container in data_containers:
                     try:
