@@ -172,7 +172,7 @@ class RogerBuild(object):
                         except ValueError:
                             raise ValueError("Docker build failed")
                     else:
-                        directory = '{0}/{1}'.format(cur_dir, args.directory)
+                        directory = os.path.join(cur_dir, args.directory)
                         try:
                             dockerObj.docker_build(
                                 dockerUtilsObj, appObj, directory, repo, projects, dockerfile_rel_repo_path, image, docker_build_args, args.verbose, build_filename)
