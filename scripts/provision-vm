@@ -23,10 +23,10 @@ function docker_setup {
 
 function set_env_vars {
   local bash_path=/home/vagrant/.bash_profile
-  touch $bash_path
-  chown vagrant:vagrant $bash_path
+  touch "$bash_path"
+  chown vagrant:vagrant "$bash_path"
   if ! grep 'ROGER_USER_PASS_PROD' $bash_path; then
-    cat <<-'EOF' >> "$bash_path"
+    cat <<'EOF' >> "$bash_path"
 
     echo "Example: firstname.lastname"
     read -p 'ROGER_USER: ' uservar
