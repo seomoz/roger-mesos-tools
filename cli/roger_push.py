@@ -448,6 +448,9 @@ class RogerPush(object):
                     except (Exception) as e:
                         raise ValueError("{} Error : {}".format(getDebugInfo(), e))
                     try:
+                        container_name = self.getContainerName(container)
+                        containerConfig = "{0}-{1}.json".format(config['name'], container_name)
+                        config_file_path = "{0}/{1}/{2}".format(comp_dir, environment, containerConfig)
                         # this is where actual push is happening
                         # we only push if forced, in case of failures
                         # in deployment checks
