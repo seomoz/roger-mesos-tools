@@ -337,7 +337,8 @@ class RogerPush(object):
             template = ''
             for container in data_containers:
                 container_name = self.getContainerName(container)
-                container_vars = container[container_name]
+                if type(container) == dict:
+                    container = container[container_name]
                 containerConfig = "{0}-{1}.json".format(config['name'], container_name)
 
                 template_with_path = os.path.join(app_path, containerConfig)
@@ -362,7 +363,7 @@ class RogerPush(object):
                 print("Rendering content from template {} for environment [{}]".format(template_with_path, environment))
                 try:
                     output = self.renderTemplate(template, environment, image_path, data,
-                                                 config, container_vars, container_name, additional_vars)
+                                                 config, container, container_name, additional_vars)
                 except exceptions.UndefinedError as e:
                     error_str = "The following Undefined Jinja variable error occurred. %s.\n" % e
                     print(colored(error_str, "red"), file=sys.stderr)
