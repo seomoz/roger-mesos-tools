@@ -352,7 +352,7 @@ class RogerDeploy(object):
                 self.statsd_message_list.append(tup)
                 self.removeDirTree(work_dir, args, temp_dir_created)
             except (Exception) as e:
-                error_msg = "Error when deploying {}: {}".format(app, repr(e))
+                error_msg = "Error when deploying {}: {}".format(args.application, repr(e))
                 printErrorMsg(error_msg)
                 raise
 
@@ -402,8 +402,10 @@ class RogerDeploy(object):
                        "This is used to bump to next version.******", "grey"))
         if skip_build:
             curr_image_ver = frameworkObj.getCurrentImageVersion(roger_env, environment, app)
+            if not curr_image_ver:
+                raise ValueError("No version for this app {} is deployed on marathon; You have to build the image and "
+                                "deploy it. When skip_build is defined, cli tries to fetch deployed image ".format(app))
             self.image_name = curr_image_ver
-
             if args.verbose:
                 print("Current image version deployed on {0} is :{1}".format(framework, curr_image_ver))
             if curr_image_ver is not None:

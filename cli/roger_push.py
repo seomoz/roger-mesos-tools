@@ -387,7 +387,8 @@ class RogerPush(object):
                         raise ValueError("Error while loading json from {} - {}".format(template_with_path, e))
 
                     if '\"SECRET\"' in output and not args.secrets_file:
-                        raise ValueError("Secrets present, need secret file to populate secrets")
+                        raise ValueError('"SECRET" string present in template, replace'
+                                         'with template variables named in sercrets file')
                     output = self.mergeSecrets(output, secret_vars)
                     if output != "StandardError":
                         try:

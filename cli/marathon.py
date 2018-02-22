@@ -212,11 +212,6 @@ class Marathon(Framework):
         self.fetchUserPass(environment)
         images = {}
         for app in data['apps']:
-            # (vmahedia) todo: there's a YOOGE bug here, this just picks the first image it founds
-            # with an app name in it, this is wrong, cli should either be very explicity or not try
-            # to guess at all. We need to change this bigly.
-            # https://seomoz.atlassian.net/browse/ROGER-2393
-
             # Just pickup the highest version number image and don't worry about the SHA
             if app['container'] is not None:
                 docker_image = app['container']['docker']['image']
@@ -242,6 +237,8 @@ class Marathon(Framework):
                         version = tokens[-1]
                         # we should let it throw if the version is not defined
                         images[version] = docker_image
+        if not images:
+            return None
         versions = images.keys()
         versions.sort(key=LooseVersion)
         latest_version = versions[-1]
