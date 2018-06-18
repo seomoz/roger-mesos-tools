@@ -61,6 +61,7 @@ class RogerBuild(object):
         self.parser.add_argument('--push', '-p', help="Also push to registry. Defaults to false.", action="store_true")
         self.parser.add_argument('--build-arg', action='append',
                                  help='docker build-arg; Use flags multiple times to pass more than one arg')
+        self.parser.add_argument('-ns', '--disable-swaparoo', help="Disables swaparoo functionality", action="store_true")
         return self.parser
 
     def main(self, settingObj, appObj, hooksObj, dockerUtilsObj, dockerObj, args):
@@ -168,14 +169,14 @@ class RogerBuild(object):
                     if checkout_dir == args.directory:
                         try:
                             dockerObj.docker_build(
-                                dockerUtilsObj, appObj, args.directory, repo, projects, dockerfile_rel_repo_path, image, docker_build_args, args.verbose, build_filename)
+                                dockerUtilsObj, appObj, args.directory, repo, projects, dockerfile_rel_repo_path, image, docker_build_args, args.verbose, build_filename, args.disable_swaparoo)
                         except ValueError:
                             raise ValueError("Docker build failed")
                     else:
                         directory = os.path.join(cur_dir, args.directory)
                         try:
                             dockerObj.docker_build(
-                                dockerUtilsObj, appObj, directory, repo, projects, dockerfile_rel_repo_path, image, docker_build_args, args.verbose, build_filename)
+                                dockerUtilsObj, appObj, directory, repo, projects, dockerfile_rel_repo_path, image, docker_build_args, args.verbose, build_filename, args.disable_swaparoo)
                         except ValueError:
                             print('Docker build failed.')
                             raise

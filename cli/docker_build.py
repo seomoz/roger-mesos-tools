@@ -159,9 +159,10 @@ def packagejson_swaparoo():
 
     # Do the swaparoo
     for name, version in data['dependencies'].items():
-        if('git' in version or 'https' in version) and 'seomoz' in version:
-            print("popped {} as a private dependency".format(version))
-            os.system('npm install {}'.format(version))
+        if('git' in version or 'https' in version or 'ssh' in version) and 'seomoz' in version:
+            data['dependencies'].pop(name, None)
+            print("Installing {} as a private dependency".format(name))
+            os.system('npm install {}'.format(name))
 
     # Write modified
     with open('package.json', 'w+') as packagejson:
@@ -183,7 +184,7 @@ def null_swaparoo():
 
 class Docker(object):
 
-    def docker_build(self, dockerUtilsObj, appObj, directory, repo, projects, path, image_tag, build_args, verbose_mode, docker_file='Dockerfile'):
+    def docker_build(self, dockerUtilsObj, appObj, directory, repo, projects, path, image_tag, build_args, verbose_mode, docker_file='Dockerfile', disable_swaparoo = False):
         '''run a `docker_build -t image_tag .` in the current directory, handling any private repos'''
         repo_name = appObj.getRepoName(repo)
         sourcePath = "{0}/{1}/".format(directory, repo_name)
@@ -197,15 +198,19 @@ class Docker(object):
         if path != 'none':
             docker_path = sourcePath + "/{0}".format(path)
             os.chdir(docker_path)
-
-        if os.path.isfile('package.json'):
-            swaparoo = packagejson_swaparoo
-        elif os.path.isfile('Gemfile'):
-            swaparoo = gemfile_swaparoo
+        # skip doing swaparoo, if explicitly asked for
+        if not disable_swaparoo:
+            if verbose_mode: print("Using swaparoo functionality")
+            if os.path.isfile('package.json'):
+                swaparoo = packagejson_swaparoo
+            elif os.path.isfile('Gemfile'):
+                swaparoo = gemfile_swaparoo
+            else:
+                swaparoo = null_swaparoo
+            with swaparoo():
+                dockerUtilsObj.docker_build(image_tag, docker_file, verbose_mode, build_args)
         else:
-            swaparoo = null_swaparoo
-
-        with swaparoo():
+            if verbose_mode: print("Skipping swaparoo functionality")
             dockerUtilsObj.docker_build(image_tag, docker_file, verbose_mode, build_args)
 
 if __name__ == "__main__":
