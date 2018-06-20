@@ -159,14 +159,10 @@ def packagejson_swaparoo():
 
     # Do the swaparoo
     for name, version in data['dependencies'].items():
-        if('git' in version or 'https' in version) and 'seomoz' in version:
+        if('git' in version or 'https' in version or 'ssh' in version) and 'seomoz' in version:
             data['dependencies'].pop(name, None)
-            if '#' in version:
-                print("Installing {} as a private dependency - its default".format(version))
-                os.system('npm install {}'.format(version))
-            else:
-                print("Installing {} as a private dependency from the specified branch".format(name))
-                os.system('npm install {}'.format(name))
+            print("Installing {} as a private dependency from the specified branch".format(name))
+            os.system('npm install {}'.format(name))
 
     # Write modified
     with open('package.json', 'w+') as packagejson:
