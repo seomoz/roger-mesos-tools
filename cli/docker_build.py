@@ -78,7 +78,7 @@ def download_private_repos(projects, update_id=None):
         write_update_id(update_id)
 
 
-# SWAPAROOS
+
 # Swaparoos swap out package.json / Gemfile etc replacing references to private Github repos with local ones
 # They are language-specific and may work different ways
 
@@ -200,6 +200,7 @@ class Docker(object):
             os.chdir(docker_path)
         # skip doing swaparoo, if explicitly asked for
         if not disable_swaparoo:
+            printf("Using swaparoo functionality")
             if os.path.isfile('package.json'):
                 swaparoo = packagejson_swaparoo
             elif os.path.isfile('Gemfile'):
@@ -209,6 +210,7 @@ class Docker(object):
             with swaparoo():
                 dockerUtilsObj.docker_build(image_tag, docker_file, verbose_mode, build_args)
         else:
+            printf("Skipping swaparoo functionality")
             dockerUtilsObj.docker_build(image_tag, docker_file, verbose_mode, build_args)
 
 if __name__ == "__main__":
