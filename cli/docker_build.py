@@ -198,7 +198,8 @@ class Docker(object):
         if path != 'none':
             docker_path = sourcePath + "/{0}".format(path)
             os.chdir(docker_path)
-        if disable_swaparoo:
+        # skip doing swaparoo, if explicitly asked for
+        if not disable_swaparoo:
             if os.path.isfile('package.json'):
                 swaparoo = packagejson_swaparoo
             elif os.path.isfile('Gemfile'):
