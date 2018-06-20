@@ -187,6 +187,7 @@ class RogerDeploy(object):
         self.parser.add_argument('-sp', '--skip-push', action="store_true",
                                  help="skip the push step. Defaults to false.'")
         self.parser.add_argument('-v', '--verbose', help="verbose mode for debugging. Defaults to false.", action="store_true")
+        self.parser.add_argument('-ns', '--disable-swaparoo', help="Disables swaparoo functionality", action="store_true")
         self.parser.add_argument('-f', '--force-push', action="store_true",
                                  help="force push. Not recommended. Forces push even if validation checks failed. Applies only if skip_push is false. Defaults to false.")
         self.parser.add_argument('-p', '--incr-patch', action="store_true",
