@@ -331,7 +331,9 @@ class RogerPromote(object):
         repo = self._config_resolver('repo', app_name, args.config)
         template_path = self._config_resolver(
             'template_path', app_name, args.config)
-        if 'template_path' in data:
+
+        # this path is always relative to the root repo dir, so join
+        if template_path and not os.path.isabs(template_path):
             app_path = os.path.join(self._temp_dir, repo, template_path)
         else:
             app_path = settings_object.getTemplatesDir()
