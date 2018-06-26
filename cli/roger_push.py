@@ -462,6 +462,9 @@ class RogerPush(object):
                         # will be useful
                         resp, task_id = frameworkObj.put(config_file_path, environmentObj,
                                                          container_name, environment, act_as_user)
+                        # // operator does floor division, rounds up to integer
+                        color = "green" if resp.status_code // 100 == 2 else "red"
+                        print(colored(json.dumps(resp.json(), indent=4), color))
                         container_task_id = self.utils.modify_task_id(task_id)
                         self.task_id.extend(container_task_id)
                         if hasattr(resp, "status_code"):
