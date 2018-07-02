@@ -117,7 +117,7 @@ class RogerPromote(object):
                 [container_names.append(key) for key in container.keys()]
             else:
                 container_names.append(container)
-        if __debug__: print("Container Names: {}", container_names)
+        print("Containers being promoted: {}".format(container_names))
 
         failed_images = []
         for container in container_names:
@@ -152,12 +152,13 @@ class RogerPromote(object):
                 x += 1
                 ret_val = os.system(string_cmd)
                 if ret_val == 0:
+                    print("Container - {}, image - {}, promoted from - {} to - {}".
+                          format(container, image_name, args.from_env, args.to_env))
                     break
 
             if ret_val != 0:
-                print("Roger failed to deploy {image} to {env}".format(
-                    image_name, args.to
-                ))
+                print("Failed to deploy Container - {}, with Image - {image} to {env}".
+                      format(container,image_name, args.to))
                 failed_images.append(image_name)
 
         # CleanUp
