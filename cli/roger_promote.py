@@ -114,7 +114,7 @@ class RogerPromote(object):
         for container in app_data['containers']:
             if isinstance(container, dict):
                 # this indicates that there's a config for individual container
-                [container_names.append(key) for key in container.keys()]
+                container_names.extend(container.keys()) 
             else:
                 container_names.append(container)
         print("Containers being promoted: {}".format(container_names))
