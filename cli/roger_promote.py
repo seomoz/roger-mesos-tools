@@ -110,11 +110,19 @@ class RogerPromote(object):
             args.app_name
         )
 
-        image_refs = app_data['containers']
+        container_names= []
+        for container in app_data['containers']:
+            if isinstance(container, dict):
+                # this indicates that there's a config for individual container
+                [container_names.append(key) for key in container.keys()]
+            else:
+                container_names.append(container)
+        if __debug__: print("Container Names: {}", container_names)
+
         failed_images = []
-        for image_ref in image_refs:
+        for container in container_names:
             template_path = rp._get_template_path(
-                image_ref,
+                container,
                 rp.config_dir,
                 args,
                 args.app_name
