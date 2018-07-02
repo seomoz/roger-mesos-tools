@@ -110,11 +110,19 @@ class RogerPromote(object):
             args.app_name
         )
 
-        image_refs = app_data['containers']
+        container_names= []
+        for container in app_data['containers']:
+            if isinstance(container, dict):
+                # this indicates that there's a config for individual container
+                container_names.extend(container.keys()) 
+            else:
+                container_names.append(container)
+        print("Containers being promoted: {}".format(container_names))
+
         failed_images = []
-        for image_ref in image_refs:
+        for container in container_names:
             template_path = rp._get_template_path(
-                image_ref,
+                container,
                 rp.config_dir,
                 args,
                 args.app_name
@@ -144,12 +152,13 @@ class RogerPromote(object):
                 x += 1
                 ret_val = os.system(string_cmd)
                 if ret_val == 0:
+                    print("Container - {}, image - {}, promoted from - {} to - {}".
+                          format(container, image_name, args.from_env, args.to_env))
                     break
 
             if ret_val != 0:
-                print("Roger failed to deploy {image} to {env}".format(
-                    image_name, args.to
-                ))
+                print("Failed to deploy Container - {}, with Image - {image} to {env}".
+                      format(container,image_name, args.to))
                 failed_images.append(image_name)
 
         # CleanUp
