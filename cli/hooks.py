@@ -29,12 +29,11 @@ class Hooks:
         self.statsd_message_list = []
         self.config_file = ""
 
-    def run_hook(self, hookname, appdata, path, hook_input_metric):
+    def run_hook(self, hookname, appdata, path):
         try:
             exit_code = 0
-            function_execution_start_time = datetime.now()
             execution_result = 'SUCCESS'
-            self.whobj.invoke_webhook(appdata, hook_input_metric, self.config_file)
+            self.whobj.invoke_webhook(appdata, self.config_file)
             abs_path = os.path.abspath(path)
             if "hooks" in appdata and hookname in appdata["hooks"]:
                 command = appdata["hooks"][hookname]
@@ -47,17 +46,6 @@ class Hooks:
             execution_result = 'FAILURE'
             raise
         finally:
-            try:
-                if 'execution_result' not in globals() and 'execution_result' not in locals():
-                    execution_result = 'FAILURE'
-                if 'function_execution_start_time' not in globals() and 'function_execution_start_time' not in locals():
-                    function_execution_start_time = datetime.now()
-                sc = self.utils.getStatsClient()
-                time_take_milliseonds = ((datetime.now() - function_execution_start_time).total_seconds() * 1000)
-                hook_input_metric = hook_input_metric + ",outcome=" + str(execution_result)
-                tup = (hook_input_metric, time_take_milliseonds)
-                self.statsd_message_list.append(tup)
-            except (Exception) as e:
-                printException(e)
-                raise
+            # todo: maybe send a datadog event ?
+            pass
         return exit_code
