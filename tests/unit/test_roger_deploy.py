@@ -26,7 +26,6 @@ from cli.settings import Settings
 from cli.gitutils import GitUtils
 from cli.dockerutils import DockerUtils
 from cli.docker_build import Docker
-from statsd import StatsClient
 from cli.utils import Utils
 
 # Test basic functionalities of roger-deploy script
@@ -133,9 +132,6 @@ class TestDeploy(unittest.TestCase):
             config = self.config
             data = self.data
 
-            sc = mock(StatsClient)
-            when(sc).timing(any(), any()).thenReturn(any())
-            when(roger_deploy.utils).getStatsClient().thenReturn(sc)
             when(roger_deploy.utils).get_identifier(any(), any(), any()).thenReturn(any())
             when(roger_deploy.utils).extract_app_name(any()).thenReturn("test")
 
@@ -180,10 +176,7 @@ class TestDeploy(unittest.TestCase):
         roger_env = self.roger_env
         config = self.config
         data = self.data
-        sc = mock(StatsClient)
 
-        when(sc).timing(any(), any()).thenReturn(any())
-        when(roger_deploy.utils).getStatsClient().thenReturn(sc)
         when(roger_deploy.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(roger_deploy.utils).extract_app_name(any()).thenReturn("test")
         when(marathon).getCurrentImageVersion(
@@ -231,9 +224,6 @@ class TestDeploy(unittest.TestCase):
         config = self.config
         data = self.data
 
-        sc = mock(StatsClient)
-        when(sc).timing(any(), any()).thenReturn(any())
-        when(roger_deploy.utils).getStatsClient().thenReturn(sc)
         when(roger_deploy.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(roger_deploy.utils).extract_app_name(any()).thenReturn("test")
 
@@ -299,9 +289,6 @@ class TestDeploy(unittest.TestCase):
         when(appConfig).getRepoUrl(any()).thenReturn(repo_name)
         when(appConfig).getRepoName(any()).thenReturn(repo_name)
 
-        sc = mock(StatsClient)
-        when(sc).timing(any(), any()).thenReturn(any())
-        when(roger_deploy.utils).getStatsClient().thenReturn(sc)
         when(roger_deploy.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(roger_deploy.utils).extract_app_name(any()).thenReturn("test")
 
@@ -371,9 +358,6 @@ class TestDeploy(unittest.TestCase):
         when(appConfig).getRepoUrl(any()).thenReturn(repo_name)
         when(appConfig).getRepoName(any()).thenReturn(repo_name)
 
-        sc = mock(StatsClient)
-        when(sc).timing(any(), any()).thenReturn(any())
-        when(roger_deploy.utils).getStatsClient().thenReturn(sc)
         when(roger_deploy.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(roger_deploy.utils).extract_app_name(any()).thenReturn("test")
 
@@ -430,9 +414,6 @@ class TestDeploy(unittest.TestCase):
         config = self.config
         data = self.data
 
-        sc = mock(StatsClient)
-        when(sc).timing(any(), any()).thenReturn(any())
-        when(roger_deploy.utils).getStatsClient().thenReturn(sc)
         when(roger_deploy.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(roger_deploy.utils).extract_app_name(any()).thenReturn("test")
 
@@ -503,9 +484,6 @@ class TestDeploy(unittest.TestCase):
         when(marathon).getName().thenReturn('Marathon')
         frameworkUtils = mock(FrameworkUtils)
 
-        sc = mock(StatsClient)
-        when(sc).timing(any(), any()).thenReturn(any())
-        when(roger_deploy.utils).getStatsClient().thenReturn(sc)
         when(roger_deploy.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(roger_deploy.utils).extract_app_name(any()).thenReturn("test")
 

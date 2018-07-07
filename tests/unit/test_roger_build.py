@@ -18,7 +18,6 @@ from cli.hooks import Hooks
 from cli.dockerutils import DockerUtils
 from cli.docker_build import Docker
 from cli.utils import Utils
-from statsd import StatsClient
 
 # Test basic functionalities of roger-build script
 
@@ -70,10 +69,6 @@ class TestBuild(unittest.TestCase):
             repo_name = 'test'
             repo_url = 'test.com'
             raised_exception = False
-            sc = mock(StatsClient)
-
-            when(sc).timing(any(), any()).thenReturn(any())
-            when(roger_build.utils).getStatsClient().thenReturn(sc)
             when(roger_build.utils).get_identifier(any(), any(), any()).thenReturn(any())
             when(roger_build.utils).extract_app_name(any()).thenReturn(any())
             when(settings, strict=False).getConfigDir().thenReturn(any())
@@ -123,10 +118,6 @@ class TestBuild(unittest.TestCase):
         data = self.data
         repo_name = 'test'
         repo_url = 'test.com'
-        sc = mock(StatsClient)
-
-        when(sc).timing(any(), any()).thenReturn(any())
-        when(roger_build.utils).getStatsClient().thenReturn(sc)
         when(roger_build.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(roger_build.utils).extract_app_name(any()).thenReturn("any app")
         when(settings, strict=False).getConfigDir().thenReturn(any())
@@ -164,10 +155,7 @@ class TestBuild(unittest.TestCase):
         data = self.data
         repo_name = 'test'
         repo_url = 'test.com'
-        sc = mock(StatsClient)
 
-        when(sc).timing(any(), any()).thenReturn(any())
-        when(roger_build.utils).getStatsClient().thenReturn(sc)
         when(roger_build.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(roger_build.utils).extract_app_name(any()).thenReturn("any app")
         when(settings, strict=False).getConfigDir().thenReturn(any())

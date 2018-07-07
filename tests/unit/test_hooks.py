@@ -9,7 +9,6 @@ from cli.hooks import Hooks
 from mockito import mock, when, verify
 from mockito.matchers import any
 from cli.utils import Utils
-from statsd import StatsClient
 from cli.webhook import WebHook
 
 import pytest
@@ -29,44 +28,30 @@ class TestHooks(unittest.TestCase):
     def test_run_hook_returns_zero_when_hook_succeeds(self):
 
         when(self.hooks.whobj).invoke_webhook(any(), any(), any()).thenReturn()
-        sc = mock(StatsClient)
-        when(sc).timing(any(), any()).thenReturn(any())
-        when(self.hooks.utils).getStatsClient().thenReturn(sc)
         when(self.hooks.utils).get_identifier(any(), any(), any()).thenReturn(any())
-        assert self.hooks.run_hook("pre-build", self.appdata, os.getcwd(), "roger-tools.pre-build-test") == 0
+        assert self.hooks.run_hook("pre-build", self.appdata, os.getcwd()) == 0
 
     @pytest.mark.skip
     def test_run_hook_returns_non_zero_when_hook_fails(self):
 
         when(self.hooks.whobj).invoke_webhook(any(), any(), any()).thenReturn()
-        sc = mock(StatsClient)
-        when(sc).timing(any(), any()).thenReturn(any())
-        when(self.hooks.utils).getStatsClient().thenReturn(sc)
         when(self.hooks.utils).get_identifier(any(), any(), any()).thenReturn(any())
-        assert self.hooks.run_hook(
-            "bad-hook-cmd", self.appdata, os.getcwd(), "roger-tools.bad-hook-cmd-test") != 0
+        assert self.hooks.run_hook("bad-hook-cmd", self.appdata, os.getcwd()) != 0
 
     @pytest.mark.skip
     def test_run_hook_returns_zero_when_hook_is_absent(self):
 
         when(self.hooks.whobj).invoke_webhook(any(), any(), any()).thenReturn()
-        sc = mock(StatsClient)
-        when(sc).timing(any(), any()).thenReturn(any())
-        when(self.hooks.utils).getStatsClient().thenReturn(sc)
         when(self.hooks.utils).get_identifier(any(), any(), any()).thenReturn(any())
-        assert self.hooks.run_hook(
-            "absent-hook", self.appdata, os.getcwd(), "roger-tools.absent-hook-test") == 0
+        assert self.hooks.run_hook("absent-hook", self.appdata, os.getcwd()) == 0
 
     @pytest.mark.skip
     def test_run_hook_preserves_current_directory(self):
 
         when(self.hooks.whobj).invoke_webhook(any(), any(), any()).thenReturn()
-        sc = mock(StatsClient)
-        when(sc).timing(any(), any()).thenReturn(any())
-        when(self.hooks.utils).getStatsClient().thenReturn(sc)
         when(self.hooks.utils).get_identifier(any(), any(), any()).thenReturn(any())
         cwd = os.getcwd()
-        self.hooks.run_hook("pre-build", self.appdata, "/tmp", "roger-tools.pre-build-tmp-test")
+        self.hooks.run_hook("pre-build", self.appdata, "/tmp")
         assert cwd == os.getcwd()
 
     def tearDown(self):

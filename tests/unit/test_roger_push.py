@@ -21,7 +21,6 @@ from mockito.matchers import any
 from cli.settings import Settings
 from cli.hooks import Hooks
 from cli.utils import Utils
-from statsd import StatsClient
 
 # Test basic functionalities of roger-push script
 
@@ -144,10 +143,7 @@ class TestPush(unittest.TestCase):
         roger_env = self.roger_env
         config = self.config
         data = self.data
-        sc = mock(StatsClient)
 
-        when(sc).timing(any(), any()).thenReturn(any())
-        when(roger_push.utils).getStatsClient().thenReturn(sc)
         when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(roger_push.utils).extract_app_name(any()).thenReturn("test")
         when(marathon).put(any(), any(), any()).thenReturn("Response [200]", any())
@@ -198,10 +194,7 @@ class TestPush(unittest.TestCase):
         roger_env = self.roger_env
         config = self.test_config
         data = self.test_data
-        sc = mock(StatsClient)
 
-        when(sc).timing(any(), any()).thenReturn(any())
-        when(roger_push.utils).getStatsClient().thenReturn(sc)
         when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(roger_push.utils).extract_app_name(any()).thenReturn("test")
         when(marathon).getName().thenReturn('Marathon')
@@ -264,10 +257,7 @@ class TestPush(unittest.TestCase):
         roger_env = self.roger_env
         config = self.config
         data = self.data
-        sc = mock(StatsClient)
 
-        when(sc).timing(any(), any()).thenReturn(any())
-        when(roger_push.utils).getStatsClient().thenReturn(sc)
         when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(roger_push.utils).extract_app_name(any()).thenReturn("test")
         when(marathon).put(any(), any(), any()).thenReturn("Response [200]")
@@ -397,9 +387,6 @@ class TestPush(unittest.TestCase):
         config = self.config
         data = self.data
 
-        sc = mock(StatsClient)
-        when(sc).timing(any(), any()).thenReturn(any())
-        when(roger_push.utils).getStatsClient().thenReturn(sc)
         when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(roger_push.utils).extract_app_name(any()).thenReturn("test")
         when(roger_push.utils).get_version().thenReturn(any())
@@ -448,9 +435,6 @@ class TestPush(unittest.TestCase):
         appdata = self.data
         config = self.config
 
-        sc = mock(StatsClient)
-        when(sc).timing(any(), any()).thenReturn(any())
-        when(roger_push.utils).getStatsClient().thenReturn(sc)
         when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(roger_push.utils).extract_app_name(any()).thenReturn("test")
 
@@ -501,9 +485,6 @@ class TestPush(unittest.TestCase):
         appdata = self.data
         config = self.config
 
-        sc = mock(StatsClient)
-        when(sc).timing(any(), any()).thenReturn(any())
-        when(roger_push.utils).getStatsClient().thenReturn(sc)
         when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(roger_push.utils).extract_app_name(any()).thenReturn("test")
 
@@ -580,9 +561,6 @@ class TestPush(unittest.TestCase):
         config = self.config
         appdata = self.data
 
-        sc = mock(StatsClient)
-        when(sc).timing(any(), any()).thenReturn(any())
-        when(roger_push.utils).getStatsClient().thenReturn(sc)
         when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(roger_push.utils).extract_app_name(any()).thenReturn("test")
 
@@ -617,9 +595,7 @@ class TestPush(unittest.TestCase):
         roger_env = self.roger_env
         appdata = self.data
         config = self.config
-        sc = mock(StatsClient)
-        when(sc).timing(any(), any()).thenReturn(any())
-        when(roger_push.utils).getStatsClient().thenReturn(sc)
+
         when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(roger_push.utils).extract_app_name(any()).thenReturn("test")
         when(frameworkUtils).getFramework(any()).thenReturn(marathon)
@@ -707,9 +683,6 @@ class TestPush(unittest.TestCase):
         frameworkUtils = mock(FrameworkUtils)
         frameworkUtils = mock(FrameworkUtils)
 
-        sc = mock(StatsClient)
-        when(sc).timing(any(), any()).thenReturn(any())
-        when(roger_push.utils).getStatsClient().thenReturn(sc)
         when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(roger_push.utils).extract_app_name(any()).thenReturn("test")
         when(roger_push.utils).modify_task_id(any()).thenReturn([any()])
@@ -758,9 +731,6 @@ class TestPush(unittest.TestCase):
         config = self.config
         data = self.data
 
-        sc = mock(StatsClient)
-        when(sc).timing(any(), any()).thenReturn(any())
-        when(roger_push.utils).getStatsClient().thenReturn(sc)
         when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(roger_push.utils).extract_app_name(any()).thenReturn("test")
 
@@ -806,9 +776,6 @@ class TestPush(unittest.TestCase):
         config = self.config
         data = self.data
 
-        sc = mock(StatsClient)
-        when(sc).timing(any(), any()).thenReturn(any())
-        when(roger_push.utils).getStatsClient().thenReturn(sc)
         when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(roger_push.utils).extract_app_name(any()).thenReturn("test")
         when(roger_push.utils).modify_task_id(any()).thenReturn([any()])
@@ -863,9 +830,6 @@ class TestPush(unittest.TestCase):
         config = self.config
         data = self.data
 
-        sc = mock(StatsClient)
-        when(sc).timing(any(), any()).thenReturn(any())
-        when(roger_push.utils).getStatsClient().thenReturn(sc)
         when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(roger_push.utils).extract_app_name(any()).thenReturn("test")
 
