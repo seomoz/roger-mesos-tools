@@ -8,7 +8,7 @@ function packages_setup {
   apt-get update
   apt-get install -y -o Dpkg::Options::="--force-confnew" docker-engine=17.05.0~ce-0~ubuntu-trusty
   apt-get install -y nodejs npm python-pip python-dev python3-dev python-pytest python-yaml
-  pip install setuptools requests mock mockito slackclient Jinja2 tabulate statsd slackweb
+  pip install setuptools requests mock mockito slackclient Jinja2 tabulate slackweb
 }
 
 function docker_setup {

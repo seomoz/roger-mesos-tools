@@ -86,7 +86,7 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=['argparse', 'setuptools', 'requests>=2.11.1', 'pyyaml',
-        'tabulate>=0.7.5', 'slackclient>=1.0.0', 'Jinja2>=2.8', 'statsd>=3.2.1', 'slackweb>=1.0.5', 'termcolor>=1.1.0'],
+        'tabulate>=0.7.5', 'slackclient>=1.0.0', 'Jinja2>=2.8', 'slackweb>=1.0.5', 'termcolor>=1.1.0'],
 
     # Include the folders listed in the MANIFEST.in file as a part of the
     # package
