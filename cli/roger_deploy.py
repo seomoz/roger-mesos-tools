@@ -31,7 +31,6 @@ from cli.docker_build import Docker
 requests.packages.urllib3.disable_warnings()
 
 import contextlib
-import statsd
 import urllib
 
 
@@ -104,7 +103,6 @@ class RogerDeploy(object):
         self.dockerObject = Docker()
         self.utils = Utils()
         self.slack = None
-        self.statsd_message_list = []
         self.registry = ""
         self.image_name = ""
 
@@ -315,47 +313,8 @@ class RogerDeploy(object):
             printException(e)
             raise
         finally:
-            # Check if the initializition of variables carried out
-            if 'function_execution_start_time' not in globals() and 'function_execution_start_time' not in locals():
-                function_execution_start_time = datetime.now()
-
-            if 'execution_result' not in globals() and 'execution_result' not in locals():
-                execution_result = 'FAILURE'
-
-            if 'config_name' not in globals() and 'config_name' not in locals():
-                config_name = ""
-
-            if 'environment' not in globals() and 'environment' not in locals():
-                environment = "dev"
-
-            if not hasattr(args, "application"):
-                args.application = ""
-
-            if 'settingObj' not in globals() and 'settingObj' not in locals():
-                settingObj = Settings()
-
-            if 'work_dir' not in globals() and 'work_dir' not in locals():
-                work_dir = ''
-                temp_dir_created = False
-
-            if not (self.rogerGitPullObject.outcome is 1 and self.rogerBuildObject.outcome is 1 and self.rogerPushObject.outcome is 1):
-                execution_result = 'FAILURE'
-
-            try:
-                # If the deploy fails before going through any steps
-                sc = self.utils.getStatsClient()
-                if not hasattr(self, "identifier"):
-                    self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.application)
-                args.application = self.utils.extract_app_name(args.application)
-                time_take_milliseonds = ((datetime.now() - function_execution_start_time).total_seconds() * 1000)
-                input_metric = "roger-tools.rogeros_tools_exec_time," + "app_name=" + str(args.application) + ",event=deploy" + ",outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",env=" + str(environment) + ",user=" + str(settingObj.getUser()) + ",identifier=" + str(self.identifier)
-                tup = (input_metric, time_take_milliseonds)
-                self.statsd_message_list.append(tup)
-                self.removeDirTree(work_dir, args, temp_dir_created)
-            except (Exception) as e:
-                error_msg = "Error when deploying {}: {}".format(args.application, repr(e))
-                printErrorMsg(error_msg)
-                raise
+            # todo: maybe send the datadog event, need to look
+            pass 
 
     def deployApp(self, settingObject, appObject, frameworkUtilsObject, gitObj, hooksObj, root, args, config,
                   roger_env, work_dir, config_dir, environment, app, branch, slack, config_file, common_repo, temp_dir_created, apps_container_dict):
@@ -384,7 +343,6 @@ class RogerDeploy(object):
         if not skip_gitpull:
             args.app_name = app
             args.directory = work_dir
-            self.rogerGitPullObject.statsd_message_list = self.statsd_message_list
             self.rogerGitPullObject.identifier = self.identifier
             self.rogerGitPullObject.main(settingObj, appObj, gitObj, hooksObj, args)
 
@@ -433,7 +391,6 @@ class RogerDeploy(object):
             build_args.verbose = args.verbose
             try:
                 self.rogerBuildObject.identifier = self.identifier
-                self.rogerBuildObject.statsd_message_list = self.statsd_message_list
                 self.rogerBuildObject.main(settingObj, appObject, hooksObj,
                                            self.dockerUtilsObject, self.dockerObject, build_args)
             except ValueError:
@@ -450,7 +407,7 @@ class RogerDeploy(object):
         else:
             args.app_name = app
         self.rogerPushObject.identifier = self.identifier
-        self.rogerPushObject.statsd_message_list = self.statsd_message_list
+
         self.rogerPushObject.main(settingObj, appObj, frameworkUtils,
                                   hooksObj, args)
 
@@ -482,26 +439,9 @@ if __name__ == "__main__":
 
     frameworkUtils = FrameworkUtils()
     hooksObj = Hooks()
-    roger_deploy.main(settingObj, appObj, frameworkUtils,
-                      gitObj, hooksObj, args)
-    result_list = []
-    tools_version_value = roger_deploy.utils.get_version()
-    image_name = roger_deploy.registry + "/" + roger_deploy.image_name
-    image_tag_value = urllib.quote("'" + image_name + "'")
     try:
-        for task_id_value in roger_deploy.rogerPushObject.task_id:
-            statsd_message_list = roger_deploy.utils.append_arguments(roger_deploy.statsd_message_list, task_id=task_id_value, tools_version=tools_version_value, image_tag=image_tag_value)
-            result_list.append(statsd_message_list)
-
-        sc = roger_deploy.utils.getStatsClient()
-
-        for lst in result_list:
-            for item in lst:
-                sc.timing(item[0], item[1])
-
-        for item in roger_deploy.rogerPushObject.statsd_push_list:
-            sc.timing(item[0], item[1])
-
+        roger_deploy.main(settingObj, appObj, frameworkUtils,
+                          gitObj, hooksObj, args)
     except (Exception) as e:
         error_msg = "Error when deploying {}: {}".format(app, repr(e))
         printErrorMsg(error_msg)
