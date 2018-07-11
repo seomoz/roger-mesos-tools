@@ -4,7 +4,6 @@ from __future__ import print_function
 import argparse
 import os
 import sys
-import statsd
 from cli.settings import Settings
 from cli.appconfig import AppConfig
 import hashlib
@@ -76,19 +75,6 @@ class Utils:
                 return sha[-1]
         return ''
 
-    def getStatsClient(self):
-        settingObj = Settings()
-        appObj = AppConfig()
-        config_dir = settingObj.getConfigDir()
-        roger_env = appObj.getRogerEnv(config_dir)
-        statsd_url = ""
-        statsd_port = ""
-        if 'statsd_endpoint' in roger_env.keys():
-            statsd_url = roger_env['statsd_endpoint']
-        if 'statsd_port' in roger_env.keys():
-            statsd_port = int(roger_env['statsd_port'])
-        return statsd.StatsClient(statsd_url, statsd_port)
-
     def get_identifier(self, config_name, user_name, app_name):
         hash_value = str(int(time.time())) + "-" + str(hashlib.sha224(config_name + "-" + user_name + "-" + app_name).hexdigest())[:8]
         return hash_value
@@ -99,19 +85,6 @@ class Utils:
         if '[' in value:
             return value.split("[")[0]
         return value
-
-    def append_arguments(self, statsd_message_list, **kwargs):
-        modified_message_list = []
-        try:
-            for item in statsd_message_list:
-                input_metric = item[0]
-                for key, value in kwargs.iteritems():
-                    input_metric += "," + key + "=" + value
-                tup = (input_metric, item[1])
-                modified_message_list.append(tup)
-        except (Exception) as e:
-            printException(e)
-        return modified_message_list
 
     def modify_task_id(self, task_id_list):
         modified_task_id_list = []

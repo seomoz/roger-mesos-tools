@@ -26,7 +26,6 @@ class Hooks:
     def __init__(self):
         self.utils = Utils()
         self.whobj = WebHook()
-        self.statsd_message_list = []
         self.config_file = ""
 
     def run_hook(self, hookname, appdata, path):
