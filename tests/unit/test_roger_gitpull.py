@@ -20,7 +20,7 @@ from cli.marathon import Marathon
 from cli.gitutils import GitUtils
 from cli.frameworkUtils import FrameworkUtils
 from cli.utils import Utils
-from statsd import StatsClient
+
 
 # Test basic functionalities of roger-git-pull script
 
@@ -75,10 +75,7 @@ class TestGitPull(unittest.TestCase):
         config = self.config
         roger_env = self.roger_env
         repo_name = 'roger'
-        sc = mock(StatsClient)
 
-        when(sc).timing(any(), any()).thenReturn(any())
-        when(roger_gitpull.utils).getStatsClient().thenReturn(sc)
         when(roger_gitpull.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(roger_gitpull.utils).extract_app_name(any()).thenReturn("test")
 
@@ -142,9 +139,6 @@ class TestGitPull(unittest.TestCase):
         when(appConfig).getAppData(any(), any(), any()).thenReturn(appdata)
         config = self.config
 
-        sc = mock(StatsClient)
-        when(sc).timing(any(), any()).thenReturn(any())
-        when(roger_gitpull.utils).getStatsClient().thenReturn(sc)
         when(roger_gitpull.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(roger_gitpull.utils).extract_app_name(any()).thenReturn("test")
         when(settings).getUser().thenReturn('test_user')
@@ -187,9 +181,6 @@ class TestGitPull(unittest.TestCase):
         when(appConfig).getAppData(any(), any(), any()).thenReturn(appdata)
         config = self.config
 
-        sc = mock(StatsClient)
-        when(sc).timing(any(), any()).thenReturn(any())
-        when(roger_gitpull.utils).getStatsClient().thenReturn(sc)
         when(roger_gitpull.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(roger_gitpull.utils).extract_app_name(any()).thenReturn("test")
 

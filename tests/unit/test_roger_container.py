@@ -19,7 +19,6 @@ from mockito.matchers import any
 from mock import MagicMock
 from cli.hooks import Hooks
 from cli.utils import Utils
-from statsd import StatsClient
 
 # Test basic functionalities of roger-push script
 
@@ -61,7 +60,7 @@ class Testcontainer(unittest.TestCase):
         roger_env = self.roger_env
         config = self.config
         data = self.data
-        sc = mock(StatsClient)
+
         frameworkUtils = mock(FrameworkUtils)
         when(frameworkUtils).getFramework(data).thenReturn(marathon)
         when(marathon).getName().thenReturn('Marathon')
@@ -72,8 +71,6 @@ class Testcontainer(unittest.TestCase):
         when(settings).getTemplatesDir().thenReturn(
             self.base_dir + "/tests/templates")
 
-        when(sc).timing(any(), any()).thenReturn(any())
-        when(roger_push.utils).getStatsClient().thenReturn(sc)
         when(roger_push.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(roger_push.utils).extract_app_name(any()).thenReturn("test")
         when(settings).getConfigDir().thenReturn(self.configs_dir)
