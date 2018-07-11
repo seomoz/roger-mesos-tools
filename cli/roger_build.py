@@ -17,7 +17,6 @@ from termcolor import colored
 from datetime import datetime
 
 import contextlib
-import statsd
 import urllib
 
 
@@ -40,7 +39,6 @@ class RogerBuild(object):
 
     def __init__(self):
         self.utils = Utils()
-        self.statsd_message_list = []
         self.outcome = 1
         self.registry = ""
         self.tag_name = ""
@@ -67,8 +65,6 @@ class RogerBuild(object):
     def main(self, settingObj, appObj, hooksObj, dockerUtilsObj, dockerObj, args):
         print(colored("******Building the Docker image now******", "grey"))
         try:
-            function_execution_start_time = datetime.now()
-            execution_result = 'SUCCESS'  # Assume the execution_result to be SUCCESS unless exception occurs
             config_dir = settingObj.getConfigDir()
             root = settingObj.getCliDir()
             config = appObj.getConfig(config_dir, args.config_file)
@@ -137,10 +133,8 @@ class RogerBuild(object):
                 self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.app_name)
 
             args.app_name = self.utils.extract_app_name(args.app_name)
-            hooksObj.statsd_message_list = self.statsd_message_list
             hookname = "pre_build"
-            hookname_input_metric = "roger-tools.rogeros_tools_exec_time," + "event=" + hookname + ",app_name=" + str(args.app_name) + ",identifier=" + str(self.identifier) + ",config_name=" + str(config_name) + ",env=" + str(args.env) + ",user=" + str(settingObj.getUser())
-            exit_code = hooksObj.run_hook(hookname, data, file_path, hookname_input_metric)
+            exit_code = hooksObj.run_hook(hookname, data, file_path)
             if exit_code != 0:
                 raise ValueError("{} hook failed.".format(hookname))
 
@@ -197,50 +191,16 @@ class RogerBuild(object):
             else:
                 print(colored("Dockerfile does not exist in dir: {}".format(file_path), "red"))
 
-            hooksObj.statsd_message_list = self.statsd_message_list
             hookname = "post_build"
-            hookname_input_metric = "roger-tools.rogeros_tools_exec_time," + "event=" + hookname + ",app_name=" + str(args.app_name) + ",identifier=" + str(self.identifier) + ",config_name=" + str(config_name) + ",env=" + str(args.env) + ",user=" + str(settingObj.getUser())
-            exit_code = hooksObj.run_hook(hookname, data, file_path, hookname_input_metric)
+            exit_code = hooksObj.run_hook(hookname, data, file_path)
             if exit_code != 0:
                 raise ValueError('{} hook failed.'.format(hookname))
         except (Exception) as e:
-            execution_result = 'FAILURE'
             printException(e)
             raise
         finally:
-            try:
-                # If the build fails before going through any steps
-                if 'function_execution_start_time' not in globals() and 'function_execution_start_time' not in locals():
-                    function_execution_start_time = datetime.now()
-
-                if 'execution_result' not in globals() and 'execution_result' not in locals():
-                    execution_result = 'FAILURE'
-
-                if 'config_name' not in globals() and 'config_name' not in locals():
-                    config_name = ""
-
-                if not hasattr(args, "env"):
-                    args.env = "dev"
-
-                if not hasattr(args, "app_name"):
-                    args.app_name = ""
-
-                if 'settingObj' not in globals() and 'settingObj' not in locals():
-                    settingObj = Settings()
-
-                if 'execution_result' is 'FAILURE':
-                    self.outcome = 0
-
-                sc = self.utils.getStatsClient()
-                if not hasattr(self, "identifier"):
-                    self.identifier = self.utils.get_identifier(config_name, settingObj.getUser(), args.app_name)
-                time_take_milliseonds = ((datetime.now() - function_execution_start_time).total_seconds() * 1000)
-                input_metric = "roger-tools.rogeros_tools_exec_time," + "app_name=" + str(args.app_name) + ",event=build" + ",identifier=" + str(self.identifier) + ",outcome=" + str(execution_result) + ",config_name=" + str(config_name) + ",env=" + str(args.env) + ",user=" + str(settingObj.getUser())
-                tup = (input_metric, time_take_milliseonds)
-                self.statsd_message_list.append(tup)
-            except (Exception) as e:
-                printException(e)
-                raise
+            # todo: maybe send a datadog event? 
+            pass
 
 if __name__ == "__main__":
     settingObj = Settings()
@@ -253,13 +213,5 @@ if __name__ == "__main__":
     args = roger_build.parser.parse_args()
     try:
         roger_build.main(settingObj, appObj, hooksObj, dockerUtilsObj, dockerObj, args)
-        tools_version_value = roger_build.utils.get_version()
-        image_name = roger_build.registry + "/" + roger_build.tag_name
-        image_tag_value = urllib.quote("'" + image_name + "'")
-
-        sc = roger_build.utils.getStatsClient()
-        statsd_message_list = roger_build.utils.append_arguments(roger_build.statsd_message_list, tools_version=tools_version_value, image_tag=image_tag_value)
-        for item in statsd_message_list:
-            sc.timing(item[0], item[1])
     except (Exception) as e:
         printException(e)
