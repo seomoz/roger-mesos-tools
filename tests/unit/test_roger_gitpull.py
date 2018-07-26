@@ -106,7 +106,7 @@ class TestGitPull(unittest.TestCase):
         args.environment = 'test'
         args.directory = self.work_dir
         args.verbose = False
-        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any(), any(), any()).thenReturn(0)
         when(gitObj).gitPull(any()).thenReturn(0)
         when(gitObj).gitShallowClone(any(), any()).thenReturn(0)
         raised_exception = False
@@ -154,7 +154,7 @@ class TestGitPull(unittest.TestCase):
         args.verbose = False
         when(gitObj).gitPull(any()).thenReturn(0)
         when(gitObj).gitShallowClone(any(), any()).thenReturn(0)
-        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any(), any(), any()).thenReturn(0)
         raised_exception = False
         try:
             return_code = roger_gitpull.main(settings, appConfig, gitObj, mockedHooks, args)
@@ -197,7 +197,7 @@ class TestGitPull(unittest.TestCase):
         args.verbose = False
         when(gitObj).gitPull(any()).thenReturn(0)
         when(gitObj).gitShallowClone(any(), any()).thenReturn(0)
-        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any(), any(), any()).thenReturn(0)
         raised_exception = False
         try:
             return_code = roger_gitpull.main(settings, appConfig, gitObj, mockedHooks, args)

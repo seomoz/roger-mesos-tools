@@ -56,7 +56,7 @@ class Testcontainer(unittest.TestCase):
         mockedHooks = mock(Hooks)
         roger_push = RogerPush()
         roger_push.utils = mock(Utils)
-        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any(), any(), any()).thenReturn(0)
         roger_env = self.roger_env
         config = self.config
         data = self.data

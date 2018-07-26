@@ -127,7 +127,7 @@ class WebHook:
                 printException(e)
                 raise
 
-    def invoke_webhook(self, appdata, hook_input_metric, config_file):
+    def invoke_webhook(self, appdata, config_file, action, env, user):
         """ Pepares set and posts to slack channel
 
         Keyword arguments:
@@ -140,32 +140,10 @@ class WebHook:
         self.function_execution_start_time = datetime.now()
         self.webhookSetting()
         self.configLevelSettings(config_file)
-        try:
-            self.action = self.app_name = self.envr = self.user = ''
-            temp = hook_input_metric.split(',')
-            for var in temp:
-                varAnother = var.split('=')[0]
-                if varAnother == 'event':
-                    self.action = var.split('=')[1]
-                    continue
-
-                if varAnother == 'app_name':
-                    self.app_name = var.split('=')[1]
-                    continue
-
-                if varAnother == 'env':
-                    self.envr = var.split('=')[1]
-                    continue
-
-                if varAnother == 'user':
-                    self.user = var.split('=')[1]
-                    continue
-            if len(self.action) == 0 or len(self.app_name) == 0 or len(self.envr) == 0 or len(self.user) == 0:
-                raise ValueError
-
-        except (Exception, KeyError, ValueError, IndexError) as e:
-            printException(e)
-            raise
+        self.action = action
+        self.envr = env
+        self.user = user
+        self.app_name = appdata['name'] 
         try:
 
             if(not self.areBasicKeysAvailableInAppdata(appdata)):

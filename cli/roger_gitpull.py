@@ -94,7 +94,7 @@ class RogerGitPull(object):
                         raise
 
             hookname = "pre_gitpull"
-            exit_code = hooksObj.run_hook(hookname, data, args.directory)
+            exit_code = hooksObj.run_hook(hookname, data, args.directory, args.env, settingObj.getUser())
             if exit_code != 0:
                 raise ValueError("{} hook failed.".format(hookname))
 

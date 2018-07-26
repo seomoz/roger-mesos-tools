@@ -314,7 +314,7 @@ class RogerPush(object):
 
             args.app_name = self.utils.extract_app_name(args.app_name)
             hookname = "pre_push"
-            exit_code = hooksObj.run_hook(hookname, data, app_path)
+            exit_code = hooksObj.run_hook(hookname, data, app_path, args.env, settingObj.getUser())
             if exit_code != 0:
                 raise ValueError("{} hook failed.".format(hookname))
 
@@ -466,7 +466,7 @@ class RogerPush(object):
                         pass
 
             hookname = "post_push"
-            exit_code = hooksObj.run_hook(hookname, data, app_path)
+            exit_code = hooksObj.run_hook(hookname, data, app_path, args.env, settingObj.getUser())
             if exit_code != 0:
                 raise ValueError("{} hook failed.".format(hookname))
             print(colored("******Done with the PUSH step******", "green"))

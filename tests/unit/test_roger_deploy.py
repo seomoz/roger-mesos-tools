@@ -292,7 +292,7 @@ class TestDeploy(unittest.TestCase):
         when(roger_deploy.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(roger_deploy.utils).extract_app_name(any()).thenReturn("test")
 
-        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any(), any(), any()).thenReturn(0)
         when(gitObj).gitPull(any()).thenReturn(0)
         when(gitObj).gitShallowClone(any(), any()).thenReturn(0)
         when(gitObj).gitClone(any(), any()).thenReturn(0)
@@ -361,7 +361,7 @@ class TestDeploy(unittest.TestCase):
         when(roger_deploy.utils).get_identifier(any(), any(), any()).thenReturn(any())
         when(roger_deploy.utils).extract_app_name(any()).thenReturn("test")
 
-        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any(), any(), any()).thenReturn(0)
 
         when(gitObj).gitPull(any()).thenReturn(0)
         when(gitObj).gitShallowClone(any(), any()).thenReturn(0)
@@ -432,7 +432,7 @@ class TestDeploy(unittest.TestCase):
         when(appConfig).getRepoUrl(any()).thenReturn(repo_name)
         when(appConfig).getRepoName(any()).thenReturn(repo_name)
 
-        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any(), any(), any()).thenReturn(0)
 
         when(gitObj).gitPull(any()).thenReturn(0)
         when(gitObj).gitShallowClone(any(), any()).thenReturn(0)
@@ -498,7 +498,7 @@ class TestDeploy(unittest.TestCase):
         when(appConfig).getRepoUrl(any()).thenReturn(repo_name)
         when(appConfig).getRepoName(any()).thenReturn(repo_name)
 
-        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any(), any(), any()).thenReturn(0)
 
         when(gitObj).gitPull(any()).thenReturn(0)
         when(gitObj).gitShallowClone(any(), any()).thenReturn(0)

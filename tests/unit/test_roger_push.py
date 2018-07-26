@@ -139,7 +139,7 @@ class TestPush(unittest.TestCase):
         roger_push.utils = mock(Utils)
         marathon = mock(Marathon)
         mockedHooks = mock(Hooks)
-        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any(), any(), any()).thenReturn(0)
         roger_env = self.roger_env
         config = self.config
         data = self.data
@@ -190,7 +190,7 @@ class TestPush(unittest.TestCase):
         roger_push.utils = mock(Utils)
         marathon = mock(Marathon)
         mockedHooks = mock(Hooks)
-        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any(), any(), any()).thenReturn(0)
         roger_env = self.roger_env
         config = self.test_config
         data = self.test_data
@@ -382,7 +382,7 @@ class TestPush(unittest.TestCase):
         roger_push.utils = mock(Utils)
         marathon = mock(Marathon)
         mockedHooks = mock(Hooks)
-        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any(), any(), any()).thenReturn(0)
         roger_env = self.roger_env
         config = self.config
         data = self.data
@@ -450,7 +450,7 @@ class TestPush(unittest.TestCase):
         when(settings).getCliDir().thenReturn(self.base_dir)
         when(settings).getUser().thenReturn(any())
         when(appConfig).getRogerEnv(self.configs_dir).thenReturn(roger_env)
-        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any(), any(), any()).thenReturn(0)
         when(appConfig).getRogerEnv(any()).thenReturn(roger_env)
 
         appdata["hooks"] = dict([("pre_push", "some command")])
@@ -500,7 +500,7 @@ class TestPush(unittest.TestCase):
         when(settings).getCliDir().thenReturn(self.base_dir)
         when(settings).getUser().thenReturn(any())
         when(appConfig).getRogerEnv(self.configs_dir).thenReturn(roger_env)
-        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any(), any(), any()).thenReturn(0)
         when(appConfig).getRogerEnv(any()).thenReturn(roger_env)
 
         appdata["hooks"] = dict([("post_push", "some command")])
@@ -568,7 +568,7 @@ class TestPush(unittest.TestCase):
         when(marathon).getName().thenReturn('Marathon')
         when(settings).getConfigDir().thenReturn(self.configs_dir)
         when(settings).getUser().thenReturn(any())
-        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any(), any(), any()).thenReturn(0)
         when(appConfig).getAppData(any(), any(), any()).thenReturn(appdata)
         when(appConfig).getRogerEnv(self.configs_dir).thenReturn(roger_env)
         when(appConfig).getConfig(any(), any()).thenReturn(config)
@@ -610,7 +610,7 @@ class TestPush(unittest.TestCase):
         when(settings).getCliDir().thenReturn(self.base_dir)
         when(settings).getUser().thenReturn(any())
         when(appConfig).getRogerEnv(self.configs_dir).thenReturn(roger_env)
-        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any(), any(), any()).thenReturn(0)
         when(appConfig).getRogerEnv(any()).thenReturn(roger_env)
 
         appdata["hooks"] = dict([("post_push", "some command")])
@@ -698,7 +698,7 @@ class TestPush(unittest.TestCase):
         when(settings).getConfigDir().thenReturn(self.configs_dir)
         when(settings).getCliDir().thenReturn(self.base_dir)
         when(settings).getUser().thenReturn(any())
-        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any(), any(), any()).thenReturn(0)
         when(appConfig).getRogerEnv(self.configs_dir).thenReturn(roger_env)
         when(appConfig).getConfig(any(), any()).thenReturn(config)
         when(appConfig).getAppData(any(), any(), any()).thenReturn(data)
@@ -747,7 +747,7 @@ class TestPush(unittest.TestCase):
         when(settings).getConfigDir().thenReturn(self.configs_dir)
         when(settings).getCliDir().thenReturn(self.base_dir)
         when(settings).getUser().thenReturn(any())
-        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any(), any(), any()).thenReturn(0)
         when(appConfig).getRogerEnv(self.configs_dir).thenReturn(roger_env)
         when(appConfig).getConfig(any(), any()).thenReturn(config)
         when(appConfig).getAppData(any(), any(), any()).thenReturn(data)
@@ -796,7 +796,7 @@ class TestPush(unittest.TestCase):
         when(settings).getConfigDir().thenReturn(self.configs_dir)
         when(settings).getCliDir().thenReturn(self.base_dir)
         when(settings).getUser().thenReturn(any())
-        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any(), any(), any()).thenReturn(0)
         when(appConfig).getRogerEnv(self.configs_dir).thenReturn(roger_env)
         when(appConfig).getConfig(any(), any()).thenReturn(config)
         when(appConfig).getAppData(any(), any(), any()).thenReturn(data)
@@ -849,7 +849,7 @@ class TestPush(unittest.TestCase):
         when(appConfig).getRogerEnv(any()).thenReturn(roger_env)
         when(appConfig).getConfig(any(), any()).thenReturn(config)
         when(appConfig).getAppData(any(), any(), any()).thenReturn(data)
-        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any(), any(), any()).thenReturn(0)
 
         args = self.args
         args.env = "dev"
