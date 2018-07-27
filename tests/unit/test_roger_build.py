@@ -128,8 +128,7 @@ class TestBuild(unittest.TestCase):
         when(appConfig).getAppData(any(), any(), any()).thenReturn(data)
         when(appConfig).getRepoUrl(any()).thenReturn(repo_name)
         when(appConfig).getRepoName(any()).thenReturn(repo_name)
-        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
-        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any(), any(), any()).thenReturn(0)
         return_code = roger_build.main(
             settings, appConfig, mockedHooks, dockerUtilsObj, dockerObj, args)
         verify(mockedHooks).run_hook("pre_build", any(), any(), any())
@@ -166,9 +165,9 @@ class TestBuild(unittest.TestCase):
         when(appConfig).getAppData(any(), any(), any()).thenReturn(data)
         when(appConfig).getRepoUrl(any()).thenReturn(repo_name)
         when(appConfig).getRepoName(any()).thenReturn(repo_name)
-        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
-        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
-        when(mockedHooks).run_hook(any(), any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any(), any(), any()).thenReturn(0)
+        when(mockedHooks).run_hook(any(), any(), any(), any(), any(), any()).thenReturn(0)
 
         return_code = roger_build.main(
             settings, appConfig, mockedHooks, dockerUtilsObj, dockerObj, args)

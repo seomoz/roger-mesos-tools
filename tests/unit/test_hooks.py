@@ -27,31 +27,31 @@ class TestHooks(unittest.TestCase):
     @pytest.mark.skip
     def test_run_hook_returns_zero_when_hook_succeeds(self):
 
-        when(self.hooks.whobj).invoke_webhook(any(), any(), any()).thenReturn()
+        when(self.hooks.whobj).invoke_webhook(any(), any(), any(), any(), any(), any()).thenReturn()
         when(self.hooks.utils).get_identifier(any(), any(), any()).thenReturn(any())
-        assert self.hooks.run_hook("pre-build", self.appdata, os.getcwd()) == 0
+        assert self.hooks.run_hook("pre-build", self.appdata, os.getcwd(), any(), any()) == 0
 
     @pytest.mark.skip
     def test_run_hook_returns_non_zero_when_hook_fails(self):
 
-        when(self.hooks.whobj).invoke_webhook(any(), any(), any()).thenReturn()
+        when(self.hooks.whobj).invoke_webhook(any(), any(), any(), any(), any(), any()).thenReturn()
         when(self.hooks.utils).get_identifier(any(), any(), any()).thenReturn(any())
-        assert self.hooks.run_hook("bad-hook-cmd", self.appdata, os.getcwd()) != 0
+        assert self.hooks.run_hook("bad-hook-cmd", self.appdata, os.getcwd(), any(), any(), any()) != 0
 
     @pytest.mark.skip
     def test_run_hook_returns_zero_when_hook_is_absent(self):
 
-        when(self.hooks.whobj).invoke_webhook(any(), any(), any()).thenReturn()
+        when(self.hooks.whobj).invoke_webhook(any(), any(), any(), any(), any(), any()).thenReturn()
         when(self.hooks.utils).get_identifier(any(), any(), any()).thenReturn(any())
-        assert self.hooks.run_hook("absent-hook", self.appdata, os.getcwd()) == 0
+        assert self.hooks.run_hook("absent-hook", self.appdata, os.getcwd(), any(), any()) == 0
 
     @pytest.mark.skip
     def test_run_hook_preserves_current_directory(self):
 
-        when(self.hooks.whobj).invoke_webhook(any(), any(), any()).thenReturn()
+        when(self.hooks.whobj).invoke_webhook(any(), any(), any(), any(), any(), any()).thenReturn()
         when(self.hooks.utils).get_identifier(any(), any(), any()).thenReturn(any())
         cwd = os.getcwd()
-        self.hooks.run_hook("pre-build", self.appdata, "/tmp")
+        self.hooks.run_hook("pre-build", self.appdata, "/tmp", any(), any())
         assert cwd == os.getcwd()
 
     def tearDown(self):

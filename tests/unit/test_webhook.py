@@ -40,26 +40,24 @@ class TestWebhook(unittest.TestCase):
         settings = mock(Settings)
         appConfig = mock(AppConfig)
         appdata = 'valid-app-data'
-        hook_input_metrics = 'invalid-hook-input-metrics'
         conf_file = 'roger-mesos-tools.config'
         when(settings).getConfigDir().thenReturn(self.configs_dir)
         when(appConfig).getRogerEnv(any()).thenReturn(self.roger_env)
         when(appConfig).getConfig(any(), any()).thenReturn(conf_file)
         with self.assertRaises(ValueError):
-            self.webhook.invoke_webhook(appdata, hook_input_metrics, conf_file)
+            self.webhook.invoke_webhook(appdata, conf_file, any(), any(), any())
 
     @pytest.mark.skip
     def test_invoke_webhook_when_appdata_is_invalid(self):
         settings = mock(Settings)
         appConfig = mock(AppConfig)
         appdata = 'invalid-app-data'
-        hook_input_metrics = 'hook-input-metrics'
         conf_file = 'roger-mesos-tools.config'
         when(settings).getConfigDir().thenReturn(self.configs_dir)
         when(appConfig).getRogerEnv(any()).thenReturn(self.roger_env)
         when(appConfig).getConfig(any(), any()).thenReturn(conf_file)
         with self.assertRaises(ValueError):
-            self.webhook.invoke_webhook(appdata, hook_input_metrics, conf_file)
+            self.webhook.invoke_webhook(appdata, conf_file, any(), any(), any())
 
     def tearDown(self):
         pass

@@ -134,7 +134,7 @@ class RogerBuild(object):
 
             args.app_name = self.utils.extract_app_name(args.app_name)
             hookname = "pre_build"
-            exit_code = hooksObj.run_hook(hookname, data, file_path)
+            exit_code = hooksObj.run_hook(hookname, data, file_path, args.env, settingObj.getUser())
             if exit_code != 0:
                 raise ValueError("{} hook failed.".format(hookname))
 
@@ -192,7 +192,7 @@ class RogerBuild(object):
                 print(colored("Dockerfile does not exist in dir: {}".format(file_path), "red"))
 
             hookname = "post_build"
-            exit_code = hooksObj.run_hook(hookname, data, file_path)
+            exit_code = hooksObj.run_hook(hookname, data, file_path, args.env, settingObj.getUser())
             if exit_code != 0:
                 raise ValueError('{} hook failed.'.format(hookname))
         except (Exception) as e:
