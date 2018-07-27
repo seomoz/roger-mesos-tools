@@ -266,7 +266,7 @@ class RogerPush(object):
             except KeyError as e:
                 raise ValueError("'environment' not defined in roger-mesos-tools.config file. - {}".format(e))
 
-            data = appObj.getAppData(config_dir, args.config_file, args.app_name)
+            data = appObj.getAppData(config_dir, args.config_file, self.utils.extract_app_name(args.app_name))
             if not data:
                 raise ValueError("Application with name [{}] or data for it not found at {}/{}.".format(
                                  args.app_name, config_dir, args.config_file))
@@ -291,7 +291,7 @@ class RogerPush(object):
             if not os.path.isdir(comp_dir):
                 os.makedirs(comp_dir)
 
-            data_containers = data['containers'] if not container_list else cotainer_list
+            data_containers = data['containers'] if not container_list else container_list
             failed_container_dict = {}
 
             # (vmahedia) upto this point it's all getting and checking the
