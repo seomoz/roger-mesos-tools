@@ -281,7 +281,7 @@ class RogerPromote(object):
         if key in config_data:
             found = config_data[key]
         for name, data in config_data['apps'].items():
-            if data['name'] == application:
+            if name == application:
                 if key in data:
                     found = data[key]
                     break
