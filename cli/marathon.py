@@ -13,7 +13,7 @@ from cli.framework import Framework
 from cli.utils import Utils
 from cli.settings import Settings
 from cli.marathonvalidator import MarathonValidator
-from cli.haproxyparser import HAProxyParser
+from cli.proxyparser import ProxyParser
 from cli.appconfig import AppConfig
 from distutils.version import LooseVersion
 requests.packages.urllib3.disable_warnings()
@@ -28,7 +28,7 @@ class Marathon(Framework):
         self.user = None
         self.passw = None
         self.marathonvalidator = MarathonValidator()
-        self.haproxyparser = HAProxyParser()
+        self.proxyparser = ProxyParser()
 
     def getName(self):
         return "Marathon"
@@ -199,7 +199,7 @@ class Marathon(Framework):
             app_tcp_port_list = group_details[app_id][1]
             app_affinity = group_details[app_id][2]
             valid = self.marathonvalidator.validate(
-                self.haproxyparser, environment, app_http_prefix, app_tcp_port_list, app_affinity, app_id, message_list) and valid
+                self.proxyparser, environment, app_http_prefix, app_tcp_port_list, app_affinity, app_id, message_list) and valid
 
         if len(message_list) != 0:
             for message in message_list:

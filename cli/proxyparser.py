@@ -11,28 +11,28 @@ from cli.settings import Settings
 requests.packages.urllib3.disable_warnings()
 
 
-class HAProxyParser:
+class ProxyParser:
 
     path_begin_values = {}
     backend_services_tcp_ports = {}
 
-    def get_haproxy_config(self, environment):
-        haproxy_config = ""
+    def get_proxy_config(self, environment):
+        proxy_config = ""
         settingObj = Settings()
         appObj = AppConfig()
         config_dir = settingObj.getConfigDir()
         roger_env = appObj.getRogerEnv(config_dir)
         host = roger_env['environments'][environment]['host']
-        haproxy_config_path = roger_env['environments'][
-            environment]['haproxy_config_path']
-        url = "{}{}".format(host, haproxy_config_path)
-        haproxy_config = requests.get(url, stream=True)
-        return haproxy_config.text
+        proxy_config_path = roger_env['environments'][
+            environment]['proxy_config_path']
+        url = "{}{}".format(host, proxy_config_path)
+        proxy_config = requests.get(url, stream=True)
+        return proxy_config.text
 
     def parseConfig(self, environment):
         path_begin_values = {}
         backend_tcp_ports = {}
-        config = self.get_haproxy_config(environment)
+        config = self.get_proxy_config(environment)
 
         backend_rules_pattern = re.compile(
             "^( ).*use_backend (.*)-cluster.* if (.*)-aclrule$", re.MULTILINE)

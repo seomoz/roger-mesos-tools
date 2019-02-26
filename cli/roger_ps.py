@@ -13,7 +13,7 @@ from termcolor import colored
 from cli.settings import Settings
 from cli.appconfig import AppConfig
 from cli.marathon import Marathon
-from cli.haproxyparser import HAProxyParser
+from cli.proxyparser import ProxyParser
 requests.packages.urllib3.disable_warnings()
 
 
@@ -32,7 +32,7 @@ class RogerPS(object):
             '-v', '--verbose', help="show extended information for each task", action="store_true")
         return parser
 
-    def get_app_details(self, framework, haproxyparser, environment, args, roger_env):
+    def get_app_details(self, framework, proxyparser, environment, args, roger_env):
         app_details = {}
         instances = {}
         instance_details = self.get_instance_details(
@@ -49,9 +49,9 @@ class RogerPS(object):
                 tasks_list.append(task_id)
                 instances[app_id] = tasks_list
 
-        haproxyparser.parseConfig(environment)
-        http_prefixes = haproxyparser.get_path_begin_values()
-        tcp_ports = haproxyparser.get_backend_tcp_ports()
+        proxyparser.parseConfig(environment)
+        http_prefixes = proxyparser.get_path_begin_values()
+        tcp_ports = proxyparser.get_backend_tcp_ports()
 
         app_ids = {}
         for app_id in instances.keys():
@@ -129,7 +129,7 @@ class RogerPS(object):
         instance_details = framework.getInstanceDetails(roger_env, environment)
         return instance_details
 
-    def main(self, settings, appconfig, framework, haproxyparser, args):
+    def main(self, settings, appconfig, framework, proxyparser, args):
         config_dir = settings.getConfigDir()
         roger_env = appconfig.getRogerEnv(config_dir)
         environment = roger_env.get('default_environment', '')
@@ -150,7 +150,7 @@ class RogerPS(object):
             raise ValueError(colored("Environment not found in roger-mesos-tools.config file.", "red"))
 
         app_details = self.get_app_details(
-            framework, haproxyparser, environment, args, roger_env)
+            framework, proxyparser, environment, args, roger_env)
         self.print_app_details(app_details, args)
 
 
@@ -158,8 +158,8 @@ if __name__ == '__main__':
     settings = Settings()
     appconfig = AppConfig()
     framework = Marathon()
-    haproxyparser = HAProxyParser()
+    proxyparser = ProxyParser()
     roger_ps = RogerPS()
     roger_ps.parser = roger_ps.parse_args()
     roger_ps.args = roger_ps.parser.parse_args()
-    roger_ps.main(settings, appconfig, framework, haproxyparser, roger_ps.args)
+    roger_ps.main(settings, appconfig, framework, proxyparser, roger_ps.args)
