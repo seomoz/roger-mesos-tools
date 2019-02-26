@@ -26,29 +26,20 @@ class ProxyParser:
         proxy_config_path = roger_env['environments'][
             environment]['proxy_config_path']
         url = "{}{}".format(host, proxy_config_path)
-        proxy_config = requests.get(url, stream=True)
-        return proxy_config.text
+        proxy_config = requests.get(url).json()
+        return proxy_config
 
     def parseConfig(self, environment):
         path_begin_values = {}
         backend_tcp_ports = {}
         config = self.get_proxy_config(environment)
 
-        backend_rules_pattern = re.compile(
-            "^( ).*use_backend (.*)-cluster.* if (.*)-aclrule$", re.MULTILINE)
-        backend_rules = backend_rules_pattern.findall(config)
-        backend_service_pattern = re.compile(
-            "^listen (.*)-cluster-tcp-(.*) :(.*)", flags=re.MULTILINE)
-        backends_service_names = backend_service_pattern.findall(config)
-        for rule in backend_rules:
-            backend_name = rule[1].replace("::", "/")
-            path_begin_value = rule[2].replace("::", "/")
-            path_begin_values[path_begin_value] = backend_name
-
-        for service in backends_service_names:
-            backend_service_name = service[0].replace("::", "/")
-            tcp_port = service[2]
-            backend_tcp_ports[tcp_port] = backend_service_name
+        for app in config['Apps']:
+            if 'HTTP_PREFIX' in app['Env']:
+                path_begin_values[app['Env']['HTTP_PREFIX']] = app['Id']
+            if app['TcpPorts'] is not None:
+                for port in app['TcpPorts'].keys():
+                    backend_tcp_ports[port] = app['Id']
 
         self.set_path_begin_values(path_begin_values)
         self.set_backend_tcp_ports(backend_tcp_ports)
