@@ -3,22 +3,22 @@
 from __future__ import print_function
 import os
 import sys
-from cli.haproxyparser import HAProxyParser
+from cli.proxyparser import ProxyParser
 
 
 class MarathonValidator:
 
-    def validate(self, haproxy_parser_obj, environment, path_begin_value, tcp_port_list, affinity, acl_name, message_list):
-        haproxy_parser_obj.parseConfig(environment)
+    def validate(self, proxy_parser_obj, environment, path_begin_value, tcp_port_list, affinity, acl_name, message_list):
+        proxy_parser_obj.parseConfig(environment)
         path_begin_check = self.check_path_begin_value(
-            haproxy_parser_obj, path_begin_value, affinity, acl_name, message_list)
+            proxy_parser_obj, path_begin_value, affinity, acl_name, message_list)
         tcp_port_check = self.check_tcp_port(
-            haproxy_parser_obj, tcp_port_list, acl_name, message_list)
+            proxy_parser_obj, tcp_port_list, acl_name, message_list)
 
         return (path_begin_check and tcp_port_check)
 
-    def check_path_begin_value(self, haproxy_parser_obj, path_begin_value, affinity, acl_name, message_list):
-        path_begin_values = haproxy_parser_obj.get_path_begin_values()
+    def check_path_begin_value(self, proxy_parser_obj, path_begin_value, affinity, acl_name, message_list):
+        path_begin_values = proxy_parser_obj.get_path_begin_values()
         if path_begin_value in path_begin_values.keys():
             if path_begin_values[path_begin_value] != acl_name:
                 if affinity is False:
@@ -34,8 +34,8 @@ class MarathonValidator:
 
         return True
 
-    def check_tcp_port(self, haproxy_parser_obj, tcp_port_list, acl_name, message_list):
-        backend_services_tcp_ports = haproxy_parser_obj.get_backend_tcp_ports()
+    def check_tcp_port(self, proxy_parser_obj, tcp_port_list, acl_name, message_list):
+        backend_services_tcp_ports = proxy_parser_obj.get_backend_tcp_ports()
         for tcp_port in tcp_port_list:
             if tcp_port in backend_services_tcp_ports.keys():
                 if backend_services_tcp_ports[tcp_port] != acl_name:
